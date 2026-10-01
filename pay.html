@@ -80,7 +80,7 @@ body{padding-bottom:86px}
     <div id="leadGate" style="max-width:560px;margin:28px auto 0;background:#fff;border:2px solid #bae6fd;border-radius:14px;padding:26px;box-shadow:0 6px 24px rgba(2,132,199,.08);">
       <h3 style="margin:0 0 6px;">🔓 Unlock Instant Pricing</h3>
       <p style="color:#475569;margin-top:0;">Fill this quick form to see à la carte prices and build your package. Takes 30 seconds.</p>
-      <form name="pay-page-leads" id="leadForm" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <form name="pay-page-leads" id="leadForm" method="POST" action="https://formspree.io/f/xnpnylqz">
         <input type="hidden" name="form-name" value="pay-page-leads">
         <p style="display:none;"><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
         <div style="display:grid;gap:10px;">
@@ -284,7 +284,7 @@ body{padding-bottom:86px}
   </div>
 </div>
 
-<form name="pay-page-bookings" data-netlify="true" netlify-honeypot="bot-field" style="display:none;" aria-hidden="true">
+<form name="pay-page-bookings" style="display:none;" aria-hidden="true">
   <input type="hidden" name="form-name" value="pay-page-bookings">
   <p><label>Don't fill this out if you're human: <input name="bot-field"></label></p>
   <input type="text" name="name">
@@ -386,8 +386,9 @@ body{padding-bottom:86px}
     var lf = new FormData(leadForm);
     lead = { name: lf.get("name") || "", phone: lf.get("phone") || "", email: lf.get("email") || "", address: lf.get("address") || "" };
     try { localStorage.setItem("kcs_lead", JSON.stringify(lead)); } catch(e){}
-    var body = new URLSearchParams(lf).toString();
-    fetch("/", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body: body})
+    var body = new URLSearchParams(lf);
+    body.append("kind", "pricing-unlock lead");
+    fetch("https://formspree.io/f/xnpnylqz", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded","Accept":"application/json"}, body: body.toString()})
       .then(function(res){ if(!res.ok){ throw new Error("submit failed"); } unlockPricing(); })
       .catch(function(){
         btn.disabled = false;
@@ -416,7 +417,7 @@ body{padding-bottom:86px}
 
   function sendBooking(total, done){
     var params = new URLSearchParams();
-    params.append("form-name", "pay-page-bookings");
+    params.append("kind", "pay-page booking");
     params.append("name", (lead && lead.name) || "");
     params.append("phone", (lead && lead.phone) || "");
     params.append("email", (lead && lead.email) || "");
@@ -426,7 +427,7 @@ body{padding-bottom:86px}
     params.append("total", fmt(total));
     var finished = false;
     function fin(){ if(!finished){ finished = true; done(); } }
-    fetch("/", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body: params.toString()}).then(fin, fin);
+    fetch("https://formspree.io/f/xnpnylqz", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded","Accept":"application/json"}, body: params.toString()}).then(fin, fin);
     setTimeout(fin, 2500);
   }
 
