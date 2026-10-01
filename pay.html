@@ -97,6 +97,7 @@ body{padding-bottom:86px}
     <div id="pricingContent" style="display:none;">
 
     <div class="sat-note">🛰️ <strong>No guesswork:</strong> we verify every package with satellite measurements of your home or business — roof, driveway, patio, and walkway square footage confirmed before we arrive, so your price is exact.</div>
+    <div class="sat-note">👆 <strong>Changed your mind?</strong> Tap a selected option again to remove it from your package.</div>
 
     <div class="pkg-cat">
       <h3>🏠 House Wash (Soft Wash)</h3>
@@ -488,7 +489,19 @@ body{padding-bottom:86px}
       payBtn.onclick = function(e){ e.preventDefault(); alert("Pick at least one service above to see your total."); };
     }
   }
-  cards.forEach(function(r){ r.addEventListener("change", update); });
+  // Tap a selected option again to remove it (radios can't uncheck themselves natively)
+  function syncPrev(){ cards.forEach(function(r){ r.setAttribute("data-prev", r.checked ? "1" : ""); }); }
+  cards.forEach(function(r){
+    r.addEventListener("click", function(){
+      if (this.getAttribute("data-prev") === "1") {
+        this.checked = false;
+        this.setAttribute("data-prev", "");
+        update();
+      }
+    });
+    r.addEventListener("change", function(){ syncPrev(); update(); });
+  });
+  syncPrev();
   vetCheck.addEventListener("change", update);
   branchSel.addEventListener("change", update);
   retCheck.addEventListener("change", update);
