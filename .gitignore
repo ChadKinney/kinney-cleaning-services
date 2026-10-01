@@ -1,0 +1,7 @@
+# Local working files - not for the live site
+hidden_files/
+preview/
+deploy.zip
+.netlify/
+# Facebook-only ad graphics (11MB, not referenced by the site)
+images/fb-ads/
