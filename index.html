@@ -97,15 +97,15 @@
     <div class="cards">
       <div class="card"><div class="card-icon">🏠</div><h3>Residential Cleaning</h3><p>Regular upkeep, deep cleans, and move in or move out service tailored to keep your home spotless.</p></div>
       <div class="card"><div class="card-icon">🪟</div><h3>Window Cleaning</h3><p>Streak free window cleaning for interior and exterior glass, leaving your view perfectly bright and clear.</p></div>
-      <div class="card"><div class="card-icon">💧</div><h3>Pressure &amp; Soft Washing</h3><p>Safe, low pressure soft washing for homes and high pressure cleaning for concrete, brick, and driveways.</p></div>
+      <div class="card"><div class="card-icon">💧</div><h3>Pressure &amp; Soft Washing</h3><p>Safe, low pressure soft washing for homes and high pressure cleaning for concrete, brick, and driveways.</p><a class="card-link" href="#gallery" data-gallery-filter="pressure">See examples &rarr;</a></div>
       <div class="card"><div class="card-icon">🏢</div><h3>Commercial Cleaning</h3><p>High quality office, retail, and corporate facility maintenance to keep your business professional.</p></div>
-      <div class="card"><div class="card-icon">🧱</div><h3>Tile &amp; Grout Cleaning</h3><p>Deep extraction cleaning to remove embedded dirt, restoring the original look of your tile floor and walls.</p></div>
+      <div class="card"><div class="card-icon">🧱</div><h3>Tile &amp; Grout Cleaning</h3><p>Deep extraction cleaning to remove embedded dirt, restoring the original look of your tile floor and walls.</p><a class="card-link" href="#gallery" data-gallery-filter="tile">See examples &rarr;</a></div>
       <div class="card"><div class="card-icon">🏗️</div><h3>Post Construction Cleanup</h3><p>Through dust, debris, and detail to get your newly built or renovated space ready for immediate use.</p></div>
       <div class="card"><div class="card-icon">🏊</div><h3>Basic Pool Care</h3><p>Keep your pool pristine and swim ready with our professional, hassle free vacuuming only service.</p></div>
       <div class="card"><div class="card-icon">✨</div><h3>Specialized Deep Cleaning</h3><p>Detailed, heavy duty sanitation projects when your space needs an extra level of care.</p></div>
       <div class="card"><div class="card-icon">🐾</div><h3>Pet Lawn Care</h3><p>A clean, hygienic yard for your family and pets with our reliable waste removal and lawn cleanup service.</p></div>
-      <div class="card"><div class="card-icon">🌲</div><h3>Pine Straw Colorant</h3><p>Professional colorant sprayed on your existing pine straw — looks freshly laid for months and extends straw life. From $149.</p></div>
-      <div class="card"><div class="card-icon">🌴</div><h3>Palm Tree Colorant</h3><p>Trunk colorant that restores rich natural color and helps protect palms from sunscald. From $99.</p></div>
+      <div class="card"><div class="card-icon">🌲</div><h3>Pine Straw Colorant</h3><p>Professional colorant sprayed on your existing pine straw — looks freshly laid for months and extends straw life. From $149.</p><a class="card-link" href="#gallery" data-gallery-filter="straw-colorant">See examples &rarr;</a></div>
+      <div class="card"><div class="card-icon">🌴</div><h3>Palm Tree Colorant</h3><p>Trunk colorant that restores rich natural color and helps protect palms from sunscald. From $99.</p><a class="card-link" href="#gallery" data-gallery-filter="palm-colorant">See examples &rarr;</a></div>
     </div>
   </div>
 </section>
@@ -141,141 +141,117 @@
       <h2>Our Work in Action</h2>
       <p>Actual jobs from around Mobile County — no stock photos, just our work.</p>
     </div>
+    <div class="filter-bar" role="group" aria-label="Filter photos by service">
+      <button type="button" class="filter-btn active" data-filter="all">All Work</button>
+      <button type="button" class="filter-btn" data-filter="pressure">Pressure Washing</button>
+      <button type="button" class="filter-btn" data-filter="gutter">Gutter Cleaning</button>
+      <button type="button" class="filter-btn" data-filter="tile">Tile &amp; Grout</button>
+      <button type="button" class="filter-btn" data-filter="pinestraw">Pine Straw</button>
+      <button type="button" class="filter-btn" data-filter="straw-colorant">Straw Colorant</button>
+      <button type="button" class="filter-btn" data-filter="palm-colorant">Palm Colorant</button>
+    </div>
+    <p class="filter-count" id="filterCount" aria-live="polite"></p>
     <div class="gallery">
-      <figure>
-        <img src="images/deck-after.jpg" alt="Freshly pressure washed beach house deck on Dauphin Island" loading="lazy">
+      <figure data-service="pressure"> alt="Freshly pressure washed beach house deck on Dauphin Island" loading="lazy">
         <figcaption>Deck soft wash — Dauphin Island</figcaption>
       </figure>
-      <figure>
-        <img src="images/porch-after.jpg" alt="Clean porch and deck after soft washing" loading="lazy">
+      <figure data-service="pressure"> alt="Clean porch and deck after soft washing" loading="lazy">
         <figcaption>Porch &amp; deck soft wash</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-after.jpg" alt="Fresh pine straw bed and trimmed landscaping" loading="lazy">
+      <figure data-service="pinestraw"> alt="Fresh pine straw bed and trimmed landscaping" loading="lazy">
         <figcaption>Fresh pine straw &amp; bed cleanup</figcaption>
       </figure>
-      <figure>
-        <img src="images/concrete-after.jpg" alt="Concrete porch and walkway after pressure washing" loading="lazy">
+      <figure data-service="pressure"> alt="Concrete porch and walkway after pressure washing" loading="lazy">
         <figcaption>Concrete porch &amp; walkway wash</figcaption>
       </figure>
-      <figure>
-        <img src="images/driveway-beforeafter.jpg" alt="Driveway half pressure washed showing before and after in one pass" loading="lazy">
+      <figure data-service="pressure"> alt="Driveway half pressure washed showing before and after in one pass" loading="lazy">
         <figcaption>Driveway wash — before &amp; after in one pass</figcaption>
       </figure>
-      <figure>
-        <img src="images/pw-action-commercial.jpg" alt="Chad running the surface cleaner on a commercial sidewalk" loading="lazy">
+      <figure data-service="pressure"> alt="Chad running the surface cleaner on a commercial sidewalk" loading="lazy">
         <figcaption>Commercial sidewalk cleaning</figcaption>
       </figure>
-      <figure>
-        <img src="images/pw-action-parkinglot.jpg" alt="Pressure washing a parking lot curb line" loading="lazy">
+      <figure data-service="pressure"> alt="Pressure washing a parking lot curb line" loading="lazy">
         <figcaption>Parking lot pressure washing</figcaption>
       </figure>
-      <figure>
-        <img src="images/walkway-after.jpg" alt="Walkway and driveway after pressure washing" loading="lazy">
+      <figure data-service="pressure"> alt="Walkway and driveway after pressure washing" loading="lazy">
         <figcaption>Walkway &amp; driveway wash</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-before.jpg" alt="Gutter packed with debris before cleaning" loading="lazy">
+      <figure data-service="gutter"> alt="Gutter packed with debris before cleaning" loading="lazy">
         <figcaption>Gutter cleanout — before</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-action.jpg" alt="Hand pulling built-up muck from a gutter" loading="lazy">
+      <figure data-service="gutter"> alt="Hand pulling built-up muck from a gutter" loading="lazy">
         <figcaption>Gutter cleanout in progress</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-before2.jpg" alt="Gutter packed with fallen leaves before cleaning" loading="lazy">
+      <figure data-service="gutter"> alt="Gutter packed with fallen leaves before cleaning" loading="lazy">
         <figcaption>Gutter cleanout — before</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-before3.jpg" alt="Leaf-clogged gutter along the roofline before cleaning" loading="lazy">
+      <figure data-service="gutter"> alt="Leaf-clogged gutter along the roofline before cleaning" loading="lazy">
         <figcaption>Gutter cleanout — before</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-after.jpg" alt="Gutter running clean and clear after cleanout" loading="lazy">
+      <figure data-service="gutter"> alt="Gutter running clean and clear after cleanout" loading="lazy">
         <figcaption>Gutter cleanout — after</figcaption>
       </figure>
-      <figure>
-        <img src="images/gutter-after2.jpg" alt="Clean gutter along the roofline after service" loading="lazy">
+      <figure data-service="gutter"> alt="Clean gutter along the roofline after service" loading="lazy">
         <figcaption>Gutter cleanout — after</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-action.jpg" alt="Rotary tile cleaner restoring a bathroom floor" loading="lazy">
+      <figure data-service="tile"> alt="Rotary tile cleaner restoring a bathroom floor" loading="lazy">
         <figcaption>Tile &amp; grout deep clean</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-before.jpg" alt="Dirty bathroom tile floor before grout cleaning" loading="lazy">
+      <figure data-service="tile"> alt="Dirty bathroom tile floor before grout cleaning" loading="lazy">
         <figcaption>Tile &amp; grout — before</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-before2.jpg" alt="Stained bathroom tile floor before deep cleaning" loading="lazy">
+      <figure data-service="tile"> alt="Stained bathroom tile floor before deep cleaning" loading="lazy">
         <figcaption>Tile &amp; grout — before</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-kitchen-action.jpg" alt="Rotary tile cleaner restoring a travertine kitchen floor" loading="lazy">
+      <figure data-service="tile"> alt="Rotary tile cleaner restoring a travertine kitchen floor" loading="lazy">
         <figcaption>Tile &amp; grout deep clean</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-buffer.jpg" alt="Floor machine scrubbing a kitchen tile floor" loading="lazy">
+      <figure data-service="tile"> alt="Floor machine scrubbing a kitchen tile floor" loading="lazy">
         <figcaption>Tile floor scrubbing</figcaption>
       </figure>
-      <figure>
-        <img src="images/tile-living-action.jpg" alt="Tile spinner cleaning a living room travertine floor" loading="lazy">
+      <figure data-service="tile"> alt="Tile spinner cleaning a living room travertine floor" loading="lazy">
         <figcaption>Tile &amp; grout deep clean</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-bed.jpg" alt="Fresh pine straw bed with flowers by the front of a house" loading="lazy">
+      <figure data-service="pinestraw"> alt="Fresh pine straw bed with flowers by the front of a house" loading="lazy">
         <figcaption>Pine straw bed refresh</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-bed2.jpg" alt="Pine straw mulched bed along a house walkway" loading="lazy">
+      <figure data-service="pinestraw"> alt="Pine straw mulched bed along a house walkway" loading="lazy">
         <figcaption>Pine straw &amp; bed edging</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-yard.jpg" alt="Backyard garden beds with fresh pine straw" loading="lazy">
+      <figure data-service="pinestraw"> alt="Backyard garden beds with fresh pine straw" loading="lazy">
         <figcaption>Backyard pine straw &amp; cleanup</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-yard2.jpg" alt="Fresh pine straw spread through a shaded backyard" loading="lazy">
+      <figure data-service="pinestraw"> alt="Fresh pine straw spread through a shaded backyard" loading="lazy">
         <figcaption>Backyard pine straw &amp; cleanup</figcaption>
       </figure>
-      <figure>
-        <img src="images/pinestraw-yard3.jpg" alt="Pine straw mulched yard with garden beds" loading="lazy">
+      <figure data-service="pinestraw"> alt="Pine straw mulched yard with garden beds" loading="lazy">
         <figcaption>Backyard pine straw &amp; cleanup</figcaption>
       </figure>
-      <figure>
-        <img src="images/colorant-yard.jpg" alt="Garden bed with pine straw colorant applied" loading="lazy">
+      <figure data-service="straw-colorant"> alt="Garden bed with pine straw colorant applied" loading="lazy">
         <figcaption>Pine straw colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/colorant-side.jpg" alt="Colored pine straw along the side of a house" loading="lazy">
+      <figure data-service="straw-colorant"> alt="Colored pine straw along the side of a house" loading="lazy">
         <figcaption>Pine straw colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/colorant-corner.jpg" alt="Corner garden bed with pine straw colorant" loading="lazy">
+      <figure data-service="straw-colorant"> alt="Corner garden bed with pine straw colorant" loading="lazy">
         <figcaption>Pine straw colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/colorant-walk.jpg" alt="Walkway bed with pine straw colorant" loading="lazy">
+      <figure data-service="straw-colorant"> alt="Walkway bed with pine straw colorant" loading="lazy">
         <figcaption>Pine straw colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/colorant-front.jpg" alt="Front walkway with colored pine straw beds" loading="lazy">
+      <figure data-service="straw-colorant"> alt="Front walkway with colored pine straw beds" loading="lazy">
         <figcaption>Pine straw colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/palm-colorant.jpg" alt="Palm trunk treated with colorant" loading="lazy">
+      <figure data-service="palm-colorant"> alt="Palm trunk treated with colorant" loading="lazy">
         <figcaption>Palm tree colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/palm-colorant2.jpg" alt="Applying colorant to a palm tree trunk" loading="lazy">
+      <figure data-service="palm-colorant"> alt="Applying colorant to a palm tree trunk" loading="lazy">
         <figcaption>Palm tree colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/palm-colorant3.jpg" alt="Palm tree with colorant restored trunk" loading="lazy">
+      <figure data-service="palm-colorant"> alt="Palm tree with colorant restored trunk" loading="lazy">
         <figcaption>Palm tree colorant</figcaption>
       </figure>
-      <figure>
-        <img src="images/palm-colorant-video.jpg" alt="Close-up of palm trunk after colorant treatment" loading="lazy">
+      <figure data-service="palm-colorant"> alt="Close-up of palm trunk after colorant treatment" loading="lazy">
         <figcaption>Palm tree colorant</figcaption>
       </figure>
     </div>
@@ -379,6 +355,39 @@
 
 <script>
 (function(){
+  /* Gallery service-type filter */
+  var bar = document.querySelector("#gallery .filter-bar");
+  var count = document.getElementById("filterCount");
+  if(bar){
+    var btns = bar.querySelectorAll(".filter-btn");
+    var figs = document.querySelectorAll("#gallery .gallery figure");
+    var labels = {};
+    btns.forEach(function(b){ labels[b.dataset.filter] = b.textContent.trim(); });
+    function apply(filter){
+      var shown = 0;
+      btns.forEach(function(b){ b.classList.toggle("active", b.dataset.filter === filter); });
+      figs.forEach(function(fg){
+        var show = (filter === "all" || fg.dataset.service === filter);
+        fg.classList.toggle("hide", !show);
+        if(show) shown++;
+      });
+      if(count){
+        count.textContent = (filter === "all")
+          ? "Showing all " + figs.length + " photos."
+          : "Showing " + shown + " " + (labels[filter] || "") + " photos.";
+      }
+    }
+    bar.addEventListener("click", function(e){
+      var b = e.target.closest(".filter-btn");
+      if(b) apply(b.dataset.filter);
+    });
+    /* Service cards deep-link into a pre-filtered gallery */
+    document.querySelectorAll("[data-gallery-filter]").forEach(function(a){
+      a.addEventListener("click", function(){ apply(a.dataset.galleryFilter); });
+    });
+    apply("all");
+  }
+
   var f = document.getElementById("quoteForm");
   if(!f) return;
   f.addEventListener("submit", function(e){
