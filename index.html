@@ -319,8 +319,7 @@
       <p>For interior cleaning, commercial buildings, and jobs beyond our <a href="pay.html">à la carte price list</a> — fill this out and we'll be in touch, usually within 24 hours. Or call or text <a href="tel:+12517670754">(251) 767-0754</a>.</p>
       <p class="form-note" style="margin-top:10px;">💳 Easy online payment: <a href="pay.html"><strong>build your cleaning package &amp; pay online</strong></a> — pick your services, see your price instantly, pay by card. No account needed.</p>
     </div>
-    <form class="form-card" name="quote" method="POST" netlify>
-      <input type="hidden" name="form-name" value="quote">
+    <form class="form-card" name="quote" id="quoteForm" action="https://formspree.io/f/moevzyag" method="POST">
       <div class="form-grid">
         <div class="field"><label for="first">First Name</label><input id="first" name="first_name" required></div>
         <div class="field"><label for="last">Last Name</label><input id="last" name="last_name" required></div>
@@ -378,5 +377,26 @@
   </div>
 </footer>
 
+<script>
+(function(){
+  var f = document.getElementById("quoteForm");
+  if(!f) return;
+  f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var btn = f.querySelector('button[type=submit]');
+    if(btn){ btn.disabled = true; btn.textContent = "Sending…"; }
+    fetch(f.action, {method:"POST", body:new FormData(f), headers:{"Accept":"application/json"}})
+      .then(function(r){
+        if(r.ok){
+          f.innerHTML = '<p class="form-note" style="font-size:18px;">Thank you for your inquiry! We\'ll be in touch soon — please allow at least 24 hours for a response, and check your spam folder.</p>';
+        } else { throw new Error("bad response"); }
+      })
+      .catch(function(){
+        if(btn){ btn.disabled = false; btn.textContent = "Send Quote Request"; }
+        alert("Something went wrong sending your request. Please call (251) 767-0754.");
+      });
+  });
+})();
+</script>
 </body>
 </html>
