@@ -88,7 +88,9 @@ body{padding-bottom:86px}
           <input class="lead-input" type="tel" name="phone" required placeholder="Phone number *" autocomplete="tel">
           <input class="lead-input" type="email" name="email" required placeholder="Email address *" autocomplete="email">
           <input class="lead-input" type="text" name="address" required placeholder="Street address *" autocomplete="street-address">
-          <input class="lead-input" type="text" name="city_state_zip" required placeholder="City, State, ZIP *">
+          <input class="lead-input" type="text" name="city" required placeholder="City *" autocomplete="address-level2">
+          <input class="lead-input" type="text" name="state" required placeholder="State *" autocomplete="address-level1">
+          <input class="lead-input" type="text" name="zip" required placeholder="ZIP Code *" autocomplete="postal-code" inputmode="numeric">
           <button type="submit" class="btn btn-primary" id="leadSubmit" style="width:100%;padding:14px;font-size:1.05rem;">Show Me Pricing →</button>
         </div>
         <p id="leadError" style="display:none;color:#dc2626;font-size:.9rem;"></p>
@@ -386,7 +388,7 @@ body{padding-bottom:86px}
     btn.disabled = true;
     btn.textContent = "Unlocking…";
     var lf = new FormData(leadForm);
-    lead = { name: lf.get("name") || "", phone: lf.get("phone") || "", email: lf.get("email") || "", address: lf.get("address") || "", city_state_zip: lf.get("city_state_zip") || "" };
+    lead = { name: lf.get("name") || "", phone: lf.get("phone") || "", email: lf.get("email") || "", address: lf.get("address") || "", city: lf.get("city") || "", state: lf.get("state") || "", zip: lf.get("zip") || "" };
     try { localStorage.setItem("kcs_lead", JSON.stringify(lead)); } catch(e){}
     var body = new URLSearchParams(lf);
     body.append("kind", "pricing unlock lead");
@@ -424,7 +426,8 @@ body{padding-bottom:86px}
     params.append("phone", (lead && lead.phone) || "");
     params.append("email", (lead && lead.email) || "");
     var fullAddress = (lead && lead.address) || "";
-    if (lead && lead.city_state_zip) { fullAddress += (fullAddress ? ", " : "") + lead.city_state_zip; }
+    var cityStateZip = [lead && lead.city, lead && lead.state, lead && lead.zip].filter(function(x){ return !!x; }).join(" ");
+    if (cityStateZip) { fullAddress += (fullAddress ? ", " : "") + cityStateZip; }
     params.append("address", fullAddress);
     params.append("services", selectedServices().join("; "));
     params.append("date", (dateInput && dateInput.value) ? fmtDate(dateInput.value) : "No date selected");
