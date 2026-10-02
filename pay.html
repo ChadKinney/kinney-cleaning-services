@@ -35,6 +35,16 @@
 .pkg-cat h3{font-size:1.25rem;margin-bottom:2px}
 .pkg-cat .cat-note{color:#64748b;font-size:.9rem}
 .sat-note{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 18px;margin-top:22px;color:#0c4a6e;font-size:.95rem}
+.checkout-summary{background:#fff;border:2px solid #bae6fd;border-radius:14px;padding:20px 22px;margin-top:34px;box-shadow:0 6px 24px rgba(2,132,199,.08)}
+.checkout-summary h3{margin:0 0 6px;font-size:1.2rem}
+.cs-empty{color:#64748b;margin:6px 0 0}
+.cs-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+.cs-name{font-weight:600}
+.cs-right{display:flex;align-items:center;gap:10px}
+.cs-price{font-weight:800;color:#0369a1;white-space:nowrap}
+.cs-remove{border:1px solid #fecaca;background:#fef2f2;color:#dc2626;border-radius:8px;min-width:32px;height:32px;font-size:1.1rem;line-height:1;cursor:pointer}
+.cs-disc{display:flex;justify-content:space-between;gap:10px;padding:8px 0;color:#059669;font-weight:600}
+.cs-total{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0 2px;font-size:1.15rem;font-weight:800}
 .lead-input{width:100%;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;box-sizing:border-box;font-family:inherit}
 .lead-input:focus{outline:none;border-color:#0ea5e9}
 .total-bar{position:fixed;left:0;right:0;bottom:0;background:#0c4a6e;color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:50;box-shadow:0 -4px 18px rgba(0,0,0,.18)}
@@ -285,6 +295,13 @@ body{padding-bottom:86px}
     </div>
 
     <div class="sat-note" style="margin-top:34px;">📋 <strong>Need something custom?</strong> Commercial buildings, Airbnb turnovers, move in/out, and deep cleans are quoted individually — <a href="index.html#quote"><strong>get your custom quote</strong></a> or call/text <a href="tel:+12517670754"><strong>(251) 767-0754</strong></a>.</div>
+
+    <div class="checkout-summary" id="checkoutSummary">
+      <h3>🧾 Checkout Summary</h3>
+      <p class="cs-empty" id="csEmpty">No services selected yet — pick from the options above.</p>
+      <div id="csItems"></div>
+      <div id="csTotals"></div>
+    </div>
   </div>
 </div>
 
@@ -309,7 +326,7 @@ body{padding-bottom:86px}
   </div>
   <div>
     <a class="btn btn-primary" id="payBtn" href="#">Pay Now 💳</a>
-    <div style="font-size:12px;color:#5b6b7b;margin-top:6px;">Secure checkout via Stripe — enter your package total on the next page.</div>
+    <div style="font-size:12px;color:#5b6b7b;margin-top:6px;">Secure checkout via Stripe — enter your package total on the next page. Estimated tax will be included on the next screen.</div>
   </div>
 </div>
 
@@ -360,6 +377,9 @@ body{padding-bottom:86px}
   var gate = document.getElementById("leadGate");
   var pricing = document.getElementById("pricingContent");
   var totalBar = document.getElementById("totalBar");
+  var csEmpty = document.getElementById("csEmpty");
+  var csItems = document.getElementById("csItems");
+  var csTotals = document.getElementById("csTotals");
   var leadForm = document.getElementById("leadForm");
   var dateInput = document.getElementById("datePick");
   var lead = null;
@@ -475,6 +495,48 @@ body{padding-bottom:86px}
     if (dateVal) { notes.push("Preferred date: " + fmtDate(dateVal)); }
     if (count > 0 && notes.length === 0) { notes.push(count + (count === 1 ? " service" : " services") + " selected"); }
     saveEl.textContent = notes.join(" • ");
+    // Checkout summary: itemized services with remove buttons
+    var checkedRadios = [];
+    document.querySelectorAll(".pkg-card input[type=radio]:checked").forEach(function(r){ checkedRadios.push(r); });
+    csItems.innerHTML = "";
+    if (checkedRadios.length === 0) {
+      csEmpty.style.display = "block";
+      csTotals.innerHTML = "";
+    } else {
+      csEmpty.style.display = "none";
+      checkedRadios.forEach(function(r){
+        var row = document.createElement("div");
+        row.className = "cs-row";
+        var nm = document.createElement("span");
+        nm.className = "cs-name";
+        nm.textContent = r.getAttribute("data-name");
+        var right = document.createElement("div");
+        right.className = "cs-right";
+        var pr = document.createElement("span");
+        pr.className = "cs-price";
+        pr.textContent = fmt(parseInt(r.value, 10));
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cs-remove";
+        btn.setAttribute("aria-label", "Remove " + r.getAttribute("data-name"));
+        btn.textContent = "×";
+        btn.addEventListener("click", function(){ r.checked = false; syncPrev(); update(); });
+        right.appendChild(pr);
+        right.appendChild(btn);
+        row.appendChild(nm);
+        row.appendChild(right);
+        csItems.appendChild(row);
+      });
+      var totHtml = "";
+      function discRow(label, amt){
+        return '<div class="cs-disc"><span>' + label + '</span><span>−' + fmt(amt) + '</span></div>';
+      }
+      if (discount > 0) { totHtml += discRow("Bundle discount (3 or more services)", discount); }
+      if (retDiscount > 0) { totHtml += discRow("Returning customer discount", retDiscount); }
+      if (vetDiscount > 0) { totHtml += discRow("Veteran discount", vetDiscount); }
+      totHtml += '<div class="cs-total"><span>Total due</span><span>' + fmt(finalTotal) + '</span></div>';
+      csTotals.innerHTML = totHtml;
+    }
     if (finalTotal > 0) {
       payBtn.textContent = "Pay " + fmt(finalTotal) + " 💳";
       payBtn.onclick = function(e){
