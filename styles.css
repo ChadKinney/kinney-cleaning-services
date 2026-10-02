@@ -197,6 +197,14 @@ a { color: var(--blue); }
   margin-top: 26px; padding: 16px 20px; background: var(--bg-soft);
   border: 1px solid var(--line); border-radius: 12px; font-size: 14px; color: var(--muted);
 }
+.cat-toggle { margin-top: 26px; border: 2px solid #bae6fd; border-radius: 14px; background: #fff; box-shadow: 0 6px 24px rgba(2,132,199,.08); overflow: hidden; }
+.cat-toggle summary { list-style: none; cursor: pointer; padding: 18px 22px; }
+.cat-toggle summary::-webkit-details-marker { display: none; }
+.cat-toggle summary .btn { width: 100%; box-sizing: border-box; }
+.cat-toggle summary .btn .cat-arrow { display: inline-block; transition: transform .2s; }
+.cat-toggle[open] summary .btn .cat-arrow { transform: rotate(180deg); }
+.cat-toggle .cat-body { padding: 0 22px 24px; }
+.cat-toggle .cat-body .shop-sub { margin-top: 2px; }
 
 /* ---------- footer ---------- */
 .site-footer { background: var(--navy); color: #cfe3f5; padding: 52px 0 28px; }
