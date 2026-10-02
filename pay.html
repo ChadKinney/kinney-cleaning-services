@@ -520,7 +520,7 @@ body{padding-bottom:86px}
         btn.className = "cs-remove";
         btn.setAttribute("aria-label", "Remove " + r.getAttribute("data-name"));
         btn.textContent = "×";
-        btn.addEventListener("click", function(){ r.checked = false; syncPrev(); update(); });
+        btn.addEventListener("click", function(){ r.checked = false; update(); });
         right.appendChild(pr);
         right.appendChild(btn);
         row.appendChild(nm);
@@ -557,19 +557,23 @@ body{padding-bottom:86px}
       payBtn.onclick = function(e){ e.preventDefault(); alert("Pick at least one service above to see your total."); };
     }
   }
-  // Tap a selected option again to remove it (radios can't uncheck themselves natively)
-  function syncPrev(){ cards.forEach(function(r){ r.setAttribute("data-prev", r.checked ? "1" : ""); }); }
+  // Tap a selected card again to remove it. The label's native activation would
+  // re-check the radio after we uncheck it, so cancel it and set state manually.
   cards.forEach(function(r){
-    r.addEventListener("click", function(){
-      if (this.getAttribute("data-prev") === "1") {
-        this.checked = false;
-        this.setAttribute("data-prev", "");
-        update();
-      }
-    });
-    r.addEventListener("change", function(){ syncPrev(); update(); });
+    var label = r.closest(".pkg-card");
+    if (label) {
+      label.addEventListener("click", function(e){
+        var t = e.target instanceof Element ? e.target : null;
+        if (t && t.closest("a")) return; // let in-card links work normally
+        if (r.checked) {
+          e.preventDefault();
+          r.checked = false;
+          update();
+        }
+      });
+    }
+    r.addEventListener("change", function(){ update(); });
   });
-  syncPrev();
   vetCheck.addEventListener("change", update);
   branchSel.addEventListener("change", update);
   retCheck.addEventListener("change", update);
