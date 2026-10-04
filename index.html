@@ -465,7 +465,7 @@
       answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
                 {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
     { id:"sqft", type:"slider", title:"About how many square feet is your home?",
-      min:1000, max:10000, step:250, def:2000 },
+      min:1000, max:4000, step:250, def:2000 },
     { id:"siding", title:"Look at your siding. What do you see?",
       answers:[ {t:"Green or black streaks", svc:"house"},
                 {t:"A layer of dust and pollen", svc:"house"},
@@ -501,9 +501,9 @@
   }
 
   /* House wash pricing by square feet. Anchor prices are placeholders for Chad to confirm. */
-  var SQFT_MIN = 1000, SQFT_MAX = 10000;
+  var SQFT_MIN = 1000, SQFT_MAX = 4000;
   var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
-  var SQFT_PRICE_AT_MAX = 899;   /* one story price at 10,000 sq ft */
+  var SQFT_PRICE_AT_MAX = 899;   /* one story price at 4,000 sq ft */
   var STORY_ADDER = 200;         /* two story adds $200, matches current 649 - 449 */
 
   function sqft(){ return (picked.sqft && picked.sqft.v) || 2000; }
@@ -541,7 +541,8 @@
       html += '<div class="quiz-slider-wrap">'
         + '<output class="quiz-slider-val" id="quizSqftVal">' + fmt(sval) + ' sq ft</output>'
         + '<input type="range" class="quiz-slider" id="quizSqft" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + sval + '">'
-        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div></div>';
+        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div>'
+        + '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button></div>';
     } else {
       html += '<div class="quiz-answers">';
       q.answers.forEach(function(a, i){
@@ -561,6 +562,11 @@
       slider.addEventListener("input", function(){
         out.textContent = fmt(slider.value) + " sq ft";
         picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+      });
+      var over = document.getElementById("quizOver4000");
+      if(over) over.addEventListener("click", function(){
+        picked.sqft = { t: "Over 4,000 sq ft", v: 4001 };
+        renderBigHome();
       });
     } else {
       card.querySelectorAll(".quiz-answer").forEach(function(b){
@@ -651,6 +657,23 @@
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
     }
+    card.innerHTML = html;
+    wireQuizQuote();
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function renderBigHome(){
+    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
+      + '<h3 class="quiz-q">Big homes get custom pricing.</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;">Homes over 4,000 square feet vary too much for an instant estimate. Tell us about the property and we will put together custom pricing.</p>'
+      + '<div class="quiz-actions">'
+      + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Custom Quote</a>'
+      + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+      + '</div>'
+      + '<button type="button" class="quiz-back" id="quizRestart">Start over</button>';
     card.innerHTML = html;
     wireQuizQuote();
     document.getElementById("quizRestart").addEventListener("click", function(){
