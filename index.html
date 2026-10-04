@@ -116,7 +116,7 @@
     <div class="section-head">
       <p class="kicker">Not sure where to start</p>
       <h2>What Does Your Home Need?</h2>
-      <p>Answer six quick questions and get an instant estimate built from our real pricing.</p>
+      <p>Answer seven quick questions and get an instant estimate built from our real pricing.</p>
     </div>
     <div class="quiz-card" id="quizCard" aria-live="polite"></div>
   </div>
@@ -461,6 +461,9 @@
       answers:[ {t:"My home", v:"res"}, {t:"A business", v:"com"} ] },
     { id:"stories", title:"How tall is your home?",
       answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
+    { id:"surface", title:"What is the outside of your home made of?",
+      answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
+                {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
     { id:"siding", title:"Look at your siding. What do you see?",
       answers:[ {t:"Green or black streaks", svc:"house"},
                 {t:"A layer of dust and pollen", svc:"house"},
@@ -481,11 +484,22 @@
   var step = 0;            /* 0..QUESTIONS.length, == length means result */
   var picked = {};         /* qid -> answer object */
 
+  /* Surface price adjustments (added to the house wash) - Chad to confirm these numbers */
+  var SURFACE_ADJ = { vinyl:0, concrete:0, wood:50, brick:50, stucco:50, combo:75 };
+  var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco", combo:"Combination" };
+
   function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
+  function surface(){ return (picked.surface && picked.surface.v) || "vinyl"; }
 
   function serviceDef(svc){
     var two = story() === "two";
-    if(svc === "house")    return { name: two ? "House soft wash (two story)" : "House soft wash (one story)", price: two ? 649 : 449, tag: null };
+    if(svc === "house"){
+      var base = two ? 649 : 449;
+      var adj = SURFACE_ADJ[surface()] || 0;
+      return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
+               price: base + adj,
+               tag: SURFACE_LABEL[surface()] + " exterior" + (adj ? " (+$" + adj + " surface care)" : "") };
+    }
     if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
     if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
     if(svc === "windows")  return { name: two ? "Window cleaning (two story)" : "Window cleaning (one story)", price: two ? 179 : 129, tag: "Up to 10 windows" };
