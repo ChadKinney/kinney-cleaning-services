@@ -255,3 +255,7 @@ a { color: var(--blue); }
 .quiz-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px}
 .quiz-nav #quizNext{margin-left:auto}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+.quiz-slider-wrap{margin:6px 0 4px}
+.quiz-slider-val{display:block;text-align:center;font-size:1.6rem;font-weight:800;color:#0369a1;margin-bottom:10px}
+.quiz-slider{width:100%;accent-color:#0ea5e9;height:32px}
+.quiz-slider-ends{display:flex;justify-content:space-between;font-size:.8rem;color:#64748b}

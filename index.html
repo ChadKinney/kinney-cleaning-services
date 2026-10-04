@@ -116,7 +116,7 @@
     <div class="section-head">
       <p class="kicker">Not sure where to start</p>
       <h2>What Does Your Home Need?</h2>
-      <p>Answer seven quick questions and get an instant estimate built from our real pricing.</p>
+      <p>Answer eight quick questions and get an instant estimate built from our real pricing.</p>
     </div>
     <div class="quiz-card" id="quizCard" aria-live="polite"></div>
   </div>
@@ -464,6 +464,8 @@
     { id:"surface", title:"What is the outside of your home made of?",
       answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
                 {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
+    { id:"sqft", type:"slider", title:"About how many square feet is your home?",
+      min:1000, max:10000, step:250, def:2000 },
     { id:"siding", title:"Look at your siding. What do you see?",
       answers:[ {t:"Green or black streaks", svc:"house"},
                 {t:"A layer of dust and pollen", svc:"house"},
@@ -498,12 +500,27 @@
     return items;
   }
 
+  /* House wash pricing by square feet. Anchor prices are placeholders for Chad to confirm. */
+  var SQFT_MIN = 1000, SQFT_MAX = 10000;
+  var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
+  var SQFT_PRICE_AT_MAX = 899;   /* one story price at 10,000 sq ft */
+  var STORY_ADDER = 200;         /* two story adds $200, matches current 649 - 449 */
+
+  function sqft(){ return (picked.sqft && picked.sqft.v) || 2000; }
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function houseWashPrice(){
+    var t = (sqft() - SQFT_MIN) / (SQFT_MAX - SQFT_MIN);
+    var p = SQFT_PRICE_AT_MIN + t * (SQFT_PRICE_AT_MAX - SQFT_PRICE_AT_MIN);
+    if(story() === "two") p += STORY_ADDER;
+    return Math.round(p);
+  }
+
   function serviceDef(svc){
     var two = story() === "two";
     if(svc === "house"){
       return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
-               price: two ? 649 : 449,
-               tag: SURFACE_LABEL[surface()] + " exterior" };
+               price: houseWashPrice(),
+               tag: SURFACE_LABEL[surface()] + " exterior, " + fmt(sqft()) + " sq ft" };
     }
     if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
     if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
@@ -518,25 +535,45 @@
     var pct = Math.round((step / QUESTIONS.length) * 100);
     var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>'
       + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
-      + '<h3 class="quiz-q">' + esc(q.title) + '</h3><div class="quiz-answers">';
-    q.answers.forEach(function(a, i){
-      var sel = picked[q.id] === a ? " selected" : "";
-      html += '<button type="button" class="quiz-answer' + sel + '" data-i="' + i + '">' + esc(a.t) + '</button>';
-    });
-    html += '</div><div class="quiz-nav">';
+      + '<h3 class="quiz-q">' + esc(q.title) + '</h3>';
+    if(q.type === "slider"){
+      var sval = sqft();
+      html += '<div class="quiz-slider-wrap">'
+        + '<output class="quiz-slider-val" id="quizSqftVal">' + fmt(sval) + ' sq ft</output>'
+        + '<input type="range" class="quiz-slider" id="quizSqft" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + sval + '">'
+        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div></div>';
+    } else {
+      html += '<div class="quiz-answers">';
+      q.answers.forEach(function(a, i){
+        var sel = picked[q.id] === a ? " selected" : "";
+        html += '<button type="button" class="quiz-answer' + sel + '" data-i="' + i + '">' + esc(a.t) + '</button>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="quiz-nav">';
     if(step > 0) html += '<button type="button" class="btn btn-ghost" id="quizBack">&larr; Back</button>';
     html += '<button type="button" class="btn btn-primary" id="quizNext">Next &rarr;</button></div>';
     card.innerHTML = html;
-    card.querySelectorAll(".quiz-answer").forEach(function(b){
-      b.addEventListener("click", function(){
-        card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
-        b.classList.add("selected");
-        picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
-        document.getElementById("quizNext").disabled = false;
+    if(q.type === "slider"){
+      var slider = document.getElementById("quizSqft");
+      var out = document.getElementById("quizSqftVal");
+      picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+      slider.addEventListener("input", function(){
+        out.textContent = fmt(slider.value) + " sq ft";
+        picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
       });
-    });
+    } else {
+      card.querySelectorAll(".quiz-answer").forEach(function(b){
+        b.addEventListener("click", function(){
+          card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
+          b.classList.add("selected");
+          picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
+          document.getElementById("quizNext").disabled = false;
+        });
+      });
+    }
     var next = document.getElementById("quizNext");
-    next.disabled = !picked[q.id];
+    next.disabled = (q.type !== "slider") && !picked[q.id];
     next.addEventListener("click", function(){
       if(!picked[q.id]) return;
       if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
