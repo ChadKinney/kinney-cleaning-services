@@ -116,7 +116,7 @@
     <div class="section-head">
       <p class="kicker">Not sure where to start</p>
       <h2>What Does Your Home Need?</h2>
-      <p>Answer eight quick questions and get an instant estimate built from our real pricing.</p>
+      <p>Answer a few quick questions and get an instant estimate built from our real pricing.</p>
     </div>
     <div class="quiz-card" id="quizCard" aria-live="polite"></div>
   </div>
@@ -466,6 +466,16 @@
                 {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
     { id:"sqft", type:"slider", title:"About how many square feet is your home?",
       min:1000, max:4000, step:250, def:2000 },
+    { id:"patio", title:"Do you have a concrete patio?",
+      answers:[ {t:"No", v:0}, {t:"Yes, one", v:1, svc:"patio"}, {t:"Yes, two or more", v:2, svc:"patio"} ] },
+    { id:"patioSqft", type:"slider", title:"About how many total square feet of patio?",
+      min:200, max:10000, step:100, def:400,
+      skip:function(){ return !(picked.patio && picked.patio.v > 0); } },
+    { id:"deck", title:"Do you have a wood deck?",
+      answers:[ {t:"No", v:0}, {t:"Yes, one", v:1, svc:"deck"}, {t:"Yes, two or more", v:2, svc:"deck"} ] },
+    { id:"deckSqft", type:"slider", title:"About how many total square feet of deck?",
+      min:200, max:10000, step:100, def:300,
+      skip:function(){ return !(picked.deck && picked.deck.v > 0); } },
     { id:"siding", title:"Look at your siding. What do you see?",
       answers:[ {t:"Green or black streaks", svc:"house"},
                 {t:"A layer of dust and pollen", svc:"house"},
@@ -505,7 +515,18 @@
   var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
   var SQFT_PRICE_AT_MAX = 899;   /* one story price at 4,000 sq ft */
 
-  function sqft(){ return (picked.sqft && picked.sqft.v) || 2000; }
+  function sqft(){ return sliderVal("sqft", 2000); }
+  function patioSqft(){ return sliderVal("patioSqft", 400); }
+  function deckSqft(){ return sliderVal("deckSqft", 300); }
+  function sliderVal(qid, def){ return (picked[qid] && picked[qid].v) || def; }
+  function patioCount(){ return (picked.patio && picked.patio.v) || 0; }
+  function deckCount(){ return (picked.deck && picked.deck.v) || 0; }
+  /* Patio and deck pricing: internet average $/sq ft + $100 per structure. Set Oct 4, 2026. */
+  var PATIO_PER_SQFT = 0.25;   /* concrete patio cleaning average */
+  var DECK_PER_SQFT = 0.35;    /* wood deck cleaning average */
+  var STRUCTURE_BUMP = 100;    /* added per patio or deck */
+  function patioPrice(){ return Math.round(PATIO_PER_SQFT * patioSqft() + STRUCTURE_BUMP * patioCount()); }
+  function deckPrice(){ return Math.round(DECK_PER_SQFT * deckSqft() + STRUCTURE_BUMP * deckCount()); }
   function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
   function houseWashPrice(){
     var t = (sqft() - SQFT_MIN) / (SQFT_MAX - SQFT_MIN);
@@ -522,6 +543,10 @@
                tag: SURFACE_LABEL[surface()] + " exterior, " + fmt(sqft()) + " sq ft" };
     }
     if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
+    if(svc === "patio") return { name: "Concrete patio cleaning", price: patioPrice(),
+      tag: fmt(patioSqft()) + " sq ft" + (patioCount() > 1 ? ", " + patioCount() + " patios" : "") };
+    if(svc === "deck") return { name: "Wood deck cleaning", price: deckPrice(),
+      tag: fmt(deckSqft()) + " sq ft" + (deckCount() > 1 ? ", " + deckCount() + " decks" : "") };
     if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
     if(svc === "windows")  return { name: two ? "Window cleaning (two story)" : "Window cleaning (one story)", price: two ? 179 : 129, tag: "Up to 10 windows" };
     return null;
@@ -536,12 +561,13 @@
       + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
       + '<h3 class="quiz-q">' + esc(q.title) + '</h3>';
     if(q.type === "slider"){
-      var sval = sqft();
+      var sval = sliderVal(q.id, q.def);
       html += '<div class="quiz-slider-wrap">'
         + '<output class="quiz-slider-val" id="quizSqftVal">' + fmt(sval) + ' sq ft</output>'
         + '<input type="range" class="quiz-slider" id="quizSqft" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + sval + '">'
-        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div>'
-        + '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button></div>';
+        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div>';
+      if(q.id === "sqft") html += '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button>';
+      html += '</div>';
     } else {
       html += '<div class="quiz-answers">';
       q.answers.forEach(function(a, i){
@@ -557,10 +583,10 @@
     if(q.type === "slider"){
       var slider = document.getElementById("quizSqft");
       var out = document.getElementById("quizSqftVal");
-      picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+      picked[q.id] = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
       slider.addEventListener("input", function(){
         out.textContent = fmt(slider.value) + " sq ft";
-        picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+        picked[q.id] = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
       });
       var over = document.getElementById("quizOver4000");
       if(over) over.addEventListener("click", function(){
@@ -572,7 +598,10 @@
         b.addEventListener("click", function(){
           card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
           b.classList.add("selected");
-          picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
+          var ans = q.answers[parseInt(b.dataset.i, 10)];
+          picked[q.id] = ans;
+          if(q.id === "patio" && !ans.v) delete picked.patioSqft;
+          if(q.id === "deck" && !ans.v) delete picked.deckSqft;
           document.getElementById("quizNext").disabled = false;
         });
       });
@@ -582,12 +611,14 @@
     next.addEventListener("click", function(){
       if(!picked[q.id]) return;
       if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
-      step++;
-      render();
+      nextStep(); render();
     });
     var back = document.getElementById("quizBack");
-    if(back) back.addEventListener("click", function(){ step--; render(); });
+    if(back) back.addEventListener("click", function(){ prevStep(); render(); });
   }
+
+  function nextStep(){ step++; while(step < QUESTIONS.length && QUESTIONS[step].skip && QUESTIONS[step].skip()) step++; }
+  function prevStep(){ step--; while(step > 0 && QUESTIONS[step].skip && QUESTIONS[step].skip()) step--; }
 
   function quizSummary(){
     var lines = ["Website quiz result:"];
