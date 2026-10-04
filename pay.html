@@ -47,6 +47,13 @@
 .cs-total{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0 2px;font-size:1.15rem;font-weight:800}
 .lead-input{width:100%;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:1rem;box-sizing:border-box;font-family:inherit}
 .lead-input:focus{outline:none;border-color:#0ea5e9}
+.house-controls{margin-top:12px}
+.story-pills{display:flex;gap:8px;margin-bottom:10px}
+.story-pill{flex:1;padding:10px;border:2px solid #e2e8f0;border-radius:10px;background:#f8fafc;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;color:#0f172a}
+.story-pill.active{border-color:#0ea5e9;background:#f0f9ff;color:#0369a1}
+.house-sqft-val{display:block;text-align:center;font-size:1.3rem;font-weight:800;color:#0369a1;margin-bottom:6px}
+.house-slider{width:100%;accent-color:#0ea5e9}
+.house-slider-ends{display:flex;justify-content:space-between;font-size:.78rem;color:#64748b;margin-bottom:4px}
 .total-bar{position:fixed;left:0;right:0;bottom:0;background:#0c4a6e;color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:50;box-shadow:0 -4px 18px rgba(0,0,0,.18)}
 .total-bar .t-label{font-size:.85rem;opacity:.85}
 .total-bar .t-amount{font-size:1.5rem;font-weight:800}
@@ -114,14 +121,20 @@ body{padding-bottom:86px}
 
     <div class="pkg-cat">
       <h3>🏠 House Wash (Soft Wash)</h3>
-      <p class="cat-note">Gentle soft wash for siding, trim, and porches — safe for your home.</p>
+      <p class="cat-note">Gentle soft wash for siding, trim, and porches — priced by home size. Two story doubles the price.</p>
       <div class="pkg-grid">
-        <label class="pkg-card"><input type="radio" name="house" value="449" data-name="One story house wash">
-          <div class="pkg-top"><span class="pkg-name">One Story House Wash</span><span class="pkg-price">$449</span></div>
-          <p class="pkg-detail">Full soft wash — siding, trim, porches. Homes up to 2,000 sq ft.</p></label>
-        <label class="pkg-card"><input type="radio" name="house" value="649" data-name="Two story house wash">
-          <div class="pkg-top"><span class="pkg-name">Two Story House Wash</span><span class="pkg-price">$649</span></div>
-          <p class="pkg-detail">Full soft wash — siding, trim, porches. Homes up to 3,000 sq ft.</p></label>
+        <label class="pkg-card"><input type="radio" name="house" id="houseRadio" value="532" data-name="House soft wash (one story, 2,000 sq ft)">
+          <div class="pkg-top"><span class="pkg-name">House Wash</span><span class="pkg-price" id="housePrice">$532</span></div>
+          <div class="house-controls">
+            <div class="story-pills">
+              <button type="button" class="story-pill active" data-story="one">One story</button>
+              <button type="button" class="story-pill" data-story="two">Two story</button>
+            </div>
+            <output class="house-sqft-val" id="houseSqftVal">2,000 sq ft</output>
+            <input type="range" class="house-slider" id="houseSqft" min="1000" max="4000" step="250" value="2000">
+            <div class="house-slider-ends"><span>1,000</span><span>4,000</span></div>
+          </div>
+          <p class="pkg-detail">Full soft wash — siding, trim, porches. Homes over 4,000 sq ft quoted free.</p></label>
       </div>
     </div>
 
@@ -559,6 +572,43 @@ body{padding-bottom:86px}
   }
   // Tap a selected card again to remove it. The label's native activation would
   // re-check the radio after we uncheck it, so cancel it and set state manually.
+  /* House wash priced by square feet: $349 at 1,000 sq ft, $899 at 4,000 sq ft, two story doubles. */
+  var houseRadio = document.getElementById("houseRadio");
+  var houseSlider = document.getElementById("houseSqft");
+  var housePriceEl = document.getElementById("housePrice");
+  var houseSqftVal = document.getElementById("houseSqftVal");
+  var houseStory = "one";
+  function housePrice(sq, two){
+    var t = (sq - 1000) / 3000;
+    var p = 349 + t * 550;
+    if(two) p *= 2;
+    return Math.round(p);
+  }
+  function syncHouse(){
+    var sq = parseInt(houseSlider.value, 10);
+    var two = houseStory === "two";
+    var price = housePrice(sq, two);
+    houseRadio.value = price;
+    houseRadio.setAttribute("data-name", "House soft wash (" + (two ? "two story" : "one story") + ", " + sq.toLocaleString("en-US") + " sq ft)");
+    housePriceEl.textContent = "$" + price.toLocaleString("en-US");
+    houseSqftVal.textContent = sq.toLocaleString("en-US") + " sq ft";
+    update();
+  }
+  if(houseRadio && houseSlider){
+    houseSlider.addEventListener("input", syncHouse);
+    houseSlider.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    houseSlider.addEventListener("click", function(e){ e.stopPropagation(); });
+    document.querySelectorAll(".story-pill").forEach(function(p){
+      p.addEventListener("click", function(e){
+        e.stopPropagation(); e.preventDefault();
+        document.querySelectorAll(".story-pill").forEach(function(x){ x.classList.remove("active"); });
+        p.classList.add("active");
+        houseStory = p.getAttribute("data-story");
+        syncHouse();
+      });
+    });
+    syncHouse();
+  }
   cards.forEach(function(r){
     var label = r.closest(".pkg-card");
     if (label) {
