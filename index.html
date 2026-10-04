@@ -484,21 +484,26 @@
   var step = 0;            /* 0..QUESTIONS.length, == length means result */
   var picked = {};         /* qid -> answer object */
 
-  /* Surface price adjustments (added to the house wash) - Chad to confirm these numbers */
-  var SURFACE_ADJ = { vinyl:0, concrete:0, wood:50, brick:50, stucco:50, combo:75 };
   var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco", combo:"Combination" };
 
   function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
   function surface(){ return (picked.surface && picked.surface.v) || "vinyl"; }
 
+  function recommendedServices(){
+    var items = [];
+    QUESTIONS.forEach(function(q){
+      var a = picked[q.id];
+      if(a && a.svc && items.indexOf(a.svc) === -1) items.push(a.svc);
+    });
+    return items;
+  }
+
   function serviceDef(svc){
     var two = story() === "two";
     if(svc === "house"){
-      var base = two ? 649 : 449;
-      var adj = SURFACE_ADJ[surface()] || 0;
       return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
-               price: base + adj,
-               tag: SURFACE_LABEL[surface()] + " exterior" + (adj ? " (+$" + adj + " surface care)" : "") };
+               price: two ? 649 : 449,
+               tag: SURFACE_LABEL[surface()] + " exterior" };
     }
     if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
     if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
@@ -542,19 +547,48 @@
     if(back) back.addEventListener("click", function(){ step--; render(); });
   }
 
-  function renderResult(){
-    var items = [];
+  function quizSummary(){
+    var lines = ["Website quiz result:"];
     QUESTIONS.forEach(function(q){
       var a = picked[q.id];
-      if(a && a.svc && items.indexOf(a.svc) === -1) items.push(a.svc);
+      if(a) lines.push(q.title + " " + a.t);
     });
+    var items = recommendedServices();
+    if(items.length){
+      var sub = 0;
+      lines.push("Recommended estimate:");
+      items.forEach(function(svc){
+        var d = serviceDef(svc);
+        sub += d.price;
+        lines.push("- " + d.name + " ($" + d.price + ")");
+      });
+      lines.push("Estimated total: $" + sub);
+    } else {
+      lines.push("No services recommended.");
+    }
+    return lines.join("\n");
+  }
+
+  function wireQuizQuote(){
+    card.querySelectorAll(".quiz-quote").forEach(function(a){
+      a.addEventListener("click", function(){
+        var msg = document.getElementById("message");
+        if(msg && !msg.value) msg.value = quizSummary();
+        var st = document.getElementById("stype");
+        if(st && picked.ptype) st.value = picked.ptype.v === "com" ? "Commercial Service" : "Residential Service";
+      });
+    });
+  }
+
+  function renderResult(){
+    var items = recommendedServices();
     var pct = 100;
     var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>';
     if(items.length === 0){
       html += '<h3 class="quiz-q">Your home is in great shape.</h3>'
         + '<p class="quiz-note" style="font-size:1rem;">Want to keep it that way? A yearly soft wash keeps the green streaks away and protects your siding.</p>'
         + '<div class="quiz-actions">'
-        + '<a class="btn btn-primary" href="#quote">Get a Free Quote</a>'
+        + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Free Quote</a>'
         + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
@@ -576,11 +610,12 @@
       html += '<p class="quiz-note">Estimates use our standard pricing. We confirm every price with satellite measurements before work begins.</p>'
         + '<div class="quiz-actions">'
         + '<a class="btn btn-primary" href="pay.html">Build This Package</a>'
-        + '<a class="btn btn-ghost" href="#quote">Get a Free Quote</a>'
+        + '<a class="btn btn-ghost quiz-quote" href="#quote">Get a Free Quote</a>'
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
     }
     card.innerHTML = html;
+    wireQuizQuote();
     document.getElementById("quizRestart").addEventListener("click", function(){
       step = 0; picked = {}; render();
     });
@@ -592,11 +627,12 @@
       + '<h3 class="quiz-q">Every business is different.</h3>'
       + '<p class="quiz-note" style="font-size:1rem;">Commercial jobs vary too much for an instant estimate, so let us talk it through. Tell us about the property and we will put together custom pricing.</p>'
       + '<div class="quiz-actions">'
-      + '<a class="btn btn-primary" href="#quote">Get a Custom Quote</a>'
+      + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Custom Quote</a>'
       + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
       + '</div>'
       + '<button type="button" class="quiz-back" id="quizRestart">Start over</button>';
     card.innerHTML = html;
+    wireQuizQuote();
     document.getElementById("quizRestart").addEventListener("click", function(){
       step = 0; picked = {}; render();
     });
