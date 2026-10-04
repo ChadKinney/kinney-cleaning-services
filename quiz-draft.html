@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Quiz Draft | Kinney Cleaning Services</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.draft-banner{background:#fef3c7;border-bottom:2px solid #f59e0b;padding:12px 18px;text-align:center;font-weight:700;color:#92400e;font-size:.95rem}
+</style>
+</head>
+<body>
+<div class="draft-banner">DRAFT PREVIEW - house wash prices shown are placeholders, not final</div>
+<section class="section" id="quiz">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">Not sure where to start</p>
+      <h2>What Does Your Home Need?</h2>
+      <p>Answer eight quick questions and get an instant estimate built from our real pricing.</p>
+    </div>
+    <div class="quiz-card" id="quizCard" aria-live="polite"></div>
+  </div>
+</section>
+<script>
+
+(function(){
+  var card = document.getElementById("quizCard");
+  if(!card) return;
+
+  var QUESTIONS = [
+    { id:"ptype", title:"Is this for your home or a business?",
+      answers:[ {t:"My home", v:"res"}, {t:"A business", v:"com"} ] },
+    { id:"stories", title:"How tall is your home?",
+      answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
+    { id:"surface", title:"What is the outside of your home made of?",
+      answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
+                {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
+    { id:"sqft", type:"slider", title:"About how many square feet is your home?",
+      min:1000, max:4000, step:250, def:2000 },
+    { id:"siding", title:"Look at your siding. What do you see?",
+      answers:[ {t:"Green or black streaks", svc:"house"},
+                {t:"A layer of dust and pollen", svc:"house"},
+                {t:"Clean and bright", svc:null} ] },
+    { id:"driveway", title:"Now the driveway and walkways.",
+      answers:[ {t:"Dark stains and buildup", svc:"driveway"},
+                {t:"A little dirty", svc:"driveway"},
+                {t:"Looking good", svc:null} ] },
+    { id:"gutters", title:"When were your gutters last cleaned out?",
+      answers:[ {t:"Over a year ago", svc:"gutter"},
+                {t:"Honestly can't remember", svc:"gutter"},
+                {t:"Recently, they are fine", svc:null} ] },
+    { id:"windows", title:"And your windows?",
+      answers:[ {t:"Spots and grime", svc:"windows"},
+                {t:"Clear enough", svc:null} ] }
+  ];
+
+  var step = 0;            /* 0..QUESTIONS.length, == length means result */
+  var picked = {};         /* qid -> answer object */
+
+  var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco", combo:"Combination" };
+
+  function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
+  function surface(){ return (picked.surface && picked.surface.v) || "vinyl"; }
+
+  function recommendedServices(){
+    var items = [];
+    QUESTIONS.forEach(function(q){
+      var a = picked[q.id];
+      if(a && a.svc && items.indexOf(a.svc) === -1) items.push(a.svc);
+    });
+    return items;
+  }
+
+  /* House wash pricing by square feet. Anchor prices are placeholders for Chad to confirm. */
+  var SQFT_MIN = 1000, SQFT_MAX = 4000;
+  var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
+  var SQFT_PRICE_AT_MAX = 899;   /* one story price at 4,000 sq ft */
+
+  function sqft(){ return (picked.sqft && picked.sqft.v) || 2000; }
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function houseWashPrice(){
+    var t = (sqft() - SQFT_MIN) / (SQFT_MAX - SQFT_MIN);
+    var p = SQFT_PRICE_AT_MIN + t * (SQFT_PRICE_AT_MAX - SQFT_PRICE_AT_MIN);
+    if(story() === "two") p = p * 2;
+    return Math.round(p);
+  }
+
+  function serviceDef(svc){
+    var two = story() === "two";
+    if(svc === "house"){
+      return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
+               price: houseWashPrice(),
+               tag: SURFACE_LABEL[surface()] + " exterior, " + fmt(sqft()) + " sq ft" };
+    }
+    if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
+    if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
+    if(svc === "windows")  return { name: two ? "Window cleaning (two story)" : "Window cleaning (one story)", price: two ? 179 : 129, tag: "Up to 10 windows" };
+    return null;
+  }
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+  function renderQuestion(){
+    var q = QUESTIONS[step];
+    var pct = Math.round((step / QUESTIONS.length) * 100);
+    var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>'
+      + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
+      + '<h3 class="quiz-q">' + esc(q.title) + '</h3>';
+    if(q.type === "slider"){
+      var sval = sqft();
+      html += '<div class="quiz-slider-wrap">'
+        + '<output class="quiz-slider-val" id="quizSqftVal">' + fmt(sval) + ' sq ft</output>'
+        + '<input type="range" class="quiz-slider" id="quizSqft" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + sval + '">'
+        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div>'
+        + '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button></div>';
+    } else {
+      html += '<div class="quiz-answers">';
+      q.answers.forEach(function(a, i){
+        var sel = picked[q.id] === a ? " selected" : "";
+        html += '<button type="button" class="quiz-answer' + sel + '" data-i="' + i + '">' + esc(a.t) + '</button>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="quiz-nav">';
+    if(step > 0) html += '<button type="button" class="btn btn-ghost" id="quizBack">&larr; Back</button>';
+    html += '<button type="button" class="btn btn-primary" id="quizNext">Next &rarr;</button></div>';
+    card.innerHTML = html;
+    if(q.type === "slider"){
+      var slider = document.getElementById("quizSqft");
+      var out = document.getElementById("quizSqftVal");
+      picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+      slider.addEventListener("input", function(){
+        out.textContent = fmt(slider.value) + " sq ft";
+        picked.sqft = { t: fmt(slider.value) + " sq ft", v: parseInt(slider.value, 10) };
+      });
+      var over = document.getElementById("quizOver4000");
+      if(over) over.addEventListener("click", function(){
+        picked.sqft = { t: "Over 4,000 sq ft", v: 4001 };
+        renderBigHome();
+      });
+    } else {
+      card.querySelectorAll(".quiz-answer").forEach(function(b){
+        b.addEventListener("click", function(){
+          card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
+          b.classList.add("selected");
+          picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
+          document.getElementById("quizNext").disabled = false;
+        });
+      });
+    }
+    var next = document.getElementById("quizNext");
+    next.disabled = (q.type !== "slider") && !picked[q.id];
+    next.addEventListener("click", function(){
+      if(!picked[q.id]) return;
+      if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
+      step++;
+      render();
+    });
+    var back = document.getElementById("quizBack");
+    if(back) back.addEventListener("click", function(){ step--; render(); });
+  }
+
+  function quizSummary(){
+    var lines = ["Website quiz result:"];
+    QUESTIONS.forEach(function(q){
+      var a = picked[q.id];
+      if(a) lines.push(q.title + " " + a.t);
+    });
+    var items = recommendedServices();
+    if(items.length){
+      var sub = 0;
+      lines.push("Recommended estimate:");
+      items.forEach(function(svc){
+        var d = serviceDef(svc);
+        sub += d.price;
+        lines.push("- " + d.name + " ($" + d.price + ")");
+      });
+      lines.push("Estimated total: $" + sub);
+    } else {
+      lines.push("No services recommended.");
+    }
+    return lines.join("\n");
+  }
+
+  function wireQuizQuote(){
+    card.querySelectorAll(".quiz-quote").forEach(function(a){
+      a.addEventListener("click", function(){
+        var msg = document.getElementById("message");
+        if(msg && !msg.value) msg.value = quizSummary();
+        var st = document.getElementById("stype");
+        if(st && picked.ptype) st.value = picked.ptype.v === "com" ? "Commercial Service" : "Residential Service";
+      });
+    });
+  }
+
+  function renderResult(){
+    var items = recommendedServices();
+    var pct = 100;
+    var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>';
+    if(items.length === 0){
+      html += '<h3 class="quiz-q">Your home is in great shape.</h3>'
+        + '<p class="quiz-note" style="font-size:1rem;">Want to keep it that way? A yearly soft wash keeps the green streaks away and protects your siding.</p>'
+        + '<div class="quiz-actions">'
+        + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Free Quote</a>'
+        + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+        + '</div>'
+        + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    } else {
+      var sub = 0, rows = "";
+      items.forEach(function(svc){
+        var d = serviceDef(svc);
+        sub += d.price;
+        rows += '<li><span class="qn">' + esc(d.name) + (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '')
+          + '</span><span class="qp">$' + d.price + '</span></li>';
+      });
+      html += '<h3 class="quiz-q">Here is what your home needs</h3>'
+        + '<ul class="quiz-result-list">' + rows + '</ul>'
+        + '<div class="quiz-total"><span>Estimated total</span><span>$' + sub + '</span></div>';
+      if(items.length >= 3){
+        var save = Math.round(sub * 0.10);
+        html += '<p class="quiz-save">Bundle bonus: 3 or more services saves you 10% on the pay page. That is $' + save + ' off, bringing your estimate to $' + (sub - save) + '.</p>';
+      }
+      html += '<p class="quiz-note">Estimates use our standard pricing. We confirm every price with satellite measurements before work begins.</p>'
+        + '<div class="quiz-actions">'
+        + '<a class="btn btn-primary" href="pay.html">Build This Package</a>'
+        + '<a class="btn btn-ghost quiz-quote" href="#quote">Get a Free Quote</a>'
+        + '</div>'
+        + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    }
+    card.innerHTML = html;
+    wireQuizQuote();
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function renderBigHome(){
+    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
+      + '<h3 class="quiz-q">Big homes get custom pricing.</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;">Homes over 4,000 square feet vary too much for an instant estimate. Tell us about the property and we will put together custom pricing.</p>'
+      + '<div class="quiz-actions">'
+      + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Custom Quote</a>'
+      + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+      + '</div>'
+      + '<button type="button" class="quiz-back" id="quizRestart">Start over</button>';
+    card.innerHTML = html;
+    wireQuizQuote();
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function renderCommercial(){
+    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
+      + '<h3 class="quiz-q">Every business is different.</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;">Commercial jobs vary too much for an instant estimate, so let us talk it through. Tell us about the property and we will put together custom pricing.</p>'
+      + '<div class="quiz-actions">'
+      + '<a class="btn btn-primary quiz-quote" href="#quote">Get a Custom Quote</a>'
+      + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+      + '</div>'
+      + '<button type="button" class="quiz-back" id="quizRestart">Start over</button>';
+    card.innerHTML = html;
+    wireQuizQuote();
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function render(){
+    if(step < QUESTIONS.length) renderQuestion();
+    else renderResult();
+  }
+  render();
+})();
+
+</script>
+</body>
+</html>
