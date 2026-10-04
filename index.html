@@ -504,14 +504,13 @@
   var SQFT_MIN = 1000, SQFT_MAX = 4000;
   var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
   var SQFT_PRICE_AT_MAX = 899;   /* one story price at 4,000 sq ft */
-  var STORY_ADDER = 200;         /* two story adds $200, matches current 649 - 449 */
 
   function sqft(){ return (picked.sqft && picked.sqft.v) || 2000; }
   function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
   function houseWashPrice(){
     var t = (sqft() - SQFT_MIN) / (SQFT_MAX - SQFT_MIN);
     var p = SQFT_PRICE_AT_MIN + t * (SQFT_PRICE_AT_MAX - SQFT_PRICE_AT_MIN);
-    if(story() === "two") p += STORY_ADDER;
+    if(story() === "two") p = p * 2;
     return Math.round(p);
   }
 
