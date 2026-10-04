@@ -116,7 +116,7 @@
     <div class="section-head">
       <p class="kicker">Not sure where to start</p>
       <h2>What Does Your Home Need?</h2>
-      <p>Answer five quick questions and get an instant estimate built from our real pricing.</p>
+      <p>Answer six quick questions and get an instant estimate built from our real pricing.</p>
     </div>
     <div class="quiz-card" id="quizCard" aria-live="polite"></div>
   </div>
@@ -457,6 +457,8 @@
   if(!card) return;
 
   var QUESTIONS = [
+    { id:"ptype", title:"Is this for your home or a business?",
+      answers:[ {t:"My home", v:"res"}, {t:"A business", v:"com"} ] },
     { id:"stories", title:"How tall is your home?",
       answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
     { id:"siding", title:"Look at your siding. What do you see?",
@@ -499,17 +501,28 @@
       + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
       + '<h3 class="quiz-q">' + esc(q.title) + '</h3><div class="quiz-answers">';
     q.answers.forEach(function(a, i){
-      html += '<button type="button" class="quiz-answer" data-i="' + i + '">' + esc(a.t) + '</button>';
+      var sel = picked[q.id] === a ? " selected" : "";
+      html += '<button type="button" class="quiz-answer' + sel + '" data-i="' + i + '">' + esc(a.t) + '</button>';
     });
-    html += '</div>';
-    if(step > 0) html += '<button type="button" class="quiz-back" id="quizBack">&larr; Back</button>';
+    html += '</div><div class="quiz-nav">';
+    if(step > 0) html += '<button type="button" class="btn btn-ghost" id="quizBack">&larr; Back</button>';
+    html += '<button type="button" class="btn btn-primary" id="quizNext">Next &rarr;</button></div>';
     card.innerHTML = html;
     card.querySelectorAll(".quiz-answer").forEach(function(b){
       b.addEventListener("click", function(){
+        card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
+        b.classList.add("selected");
         picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
-        step++;
-        render();
+        document.getElementById("quizNext").disabled = false;
       });
+    });
+    var next = document.getElementById("quizNext");
+    next.disabled = !picked[q.id];
+    next.addEventListener("click", function(){
+      if(!picked[q.id]) return;
+      if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
+      step++;
+      render();
     });
     var back = document.getElementById("quizBack");
     if(back) back.addEventListener("click", function(){ step--; render(); });
@@ -553,6 +566,22 @@
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
     }
+    card.innerHTML = html;
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function renderCommercial(){
+    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
+      + '<h3 class="quiz-q">Every business is different.</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;">Commercial jobs vary too much for an instant estimate, so let us talk it through. Tell us about the property and we will put together custom pricing.</p>'
+      + '<div class="quiz-actions">'
+      + '<a class="btn btn-primary" href="#quote">Get a Custom Quote</a>'
+      + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+      + '</div>'
+      + '<button type="button" class="quiz-back" id="quizRestart">Start over</button>';
     card.innerHTML = html;
     document.getElementById("quizRestart").addEventListener("click", function(){
       step = 0; picked = {}; render();
