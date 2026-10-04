@@ -73,6 +73,7 @@ body{padding-bottom:86px}
     </a>
     <nav class="main-nav">
       <a href="index.html#services">Services</a>
+      <a href="index.html#quiz">Quiz</a>
       <a href="index.html#reviews">Reviews</a>
       <a href="index.html#areas">Areas</a>
       <a href="shop.html">Shop</a>
@@ -175,15 +176,32 @@ body{padding-bottom:86px}
     </div>
 
     <div class="pkg-cat">
-      <h3>🪨 Patio &amp; Walkway</h3>
-      <p class="cat-note">Measured by satellite — patios, walkways, and pool decks.</p>
+      <h3>🪨 Concrete Patio &amp; Walkway</h3>
+      <p class="cat-note">Deep concrete clean — priced by size, confirmed by satellite.</p>
       <div class="pkg-grid">
-        <label class="pkg-card"><input type="radio" name="patio" value="129" data-name="Patio/walkway (up to 300 sq ft)">
-          <div class="pkg-top"><span class="pkg-name">Patio / Walkway</span><span class="pkg-price">$129</span></div>
-          <p class="pkg-detail">Up to 300 sq ft.</p></label>
-        <label class="pkg-card"><input type="radio" name="patio" value="199" data-name="Large patio/walkway (301–600 sq ft)">
-          <div class="pkg-top"><span class="pkg-name">Large Patio / Walkway</span><span class="pkg-price">$199</span></div>
-          <p class="pkg-detail">301–600 sq ft. Larger areas quoted free.</p></label>
+        <label class="pkg-card"><input type="radio" name="patio" id="patioRadio" value="200" data-name="Concrete patio (400 sq ft)">
+          <div class="pkg-top"><span class="pkg-name">Concrete Patio &amp; Walkway</span><span class="pkg-price" id="patioPrice">$200</span></div>
+          <div class="house-controls">
+            <output class="house-sqft-val" id="patioSqftVal">400 sq ft</output>
+            <input type="range" class="house-slider" id="patioSqft" min="200" max="10000" step="100" value="400">
+            <div class="house-slider-ends"><span>200</span><span>10,000</span></div>
+          </div>
+          <p class="pkg-detail">Concrete patios and walkways. Exact square footage confirmed by satellite.</p></label>
+      </div>
+    </div>
+
+    <div class="pkg-cat">
+      <h3>🪵 Wood Deck</h3>
+      <p class="cat-note">Gentle wash for wood decks — priced by size, confirmed by satellite.</p>
+      <div class="pkg-grid">
+        <label class="pkg-card"><input type="radio" name="deck" id="deckRadio" value="205" data-name="Wood deck (300 sq ft)">
+          <div class="pkg-top"><span class="pkg-name">Wood Deck Cleaning</span><span class="pkg-price" id="deckPrice">$205</span></div>
+          <div class="house-controls">
+            <output class="house-sqft-val" id="deckSqftVal">300 sq ft</output>
+            <input type="range" class="house-slider" id="deckSqft" min="200" max="10000" step="100" value="300">
+            <div class="house-slider-ends"><span>200</span><span>10,000</span></div>
+          </div>
+          <p class="pkg-detail">Wood deck wash, easy on the grain. Exact square footage confirmed by satellite.</p></label>
       </div>
     </div>
 
@@ -609,6 +627,29 @@ body{padding-bottom:86px}
     });
     syncHouse();
   }
+  /* Patio and deck priced by square feet: $0.25/$0.35 per sq ft + $100, matching the quiz. */
+  function initSqftCard(cfg){
+    var radio = document.getElementById(cfg.radio);
+    var slider = document.getElementById(cfg.slider);
+    var priceEl = document.getElementById(cfg.price);
+    var valEl = document.getElementById(cfg.val);
+    if(!radio || !slider) return;
+    function sync(){
+      var sq = parseInt(slider.value, 10);
+      var p = Math.round(cfg.rate * sq + cfg.bump);
+      radio.value = p;
+      radio.setAttribute("data-name", cfg.name + " (" + sq.toLocaleString("en-US") + " sq ft)");
+      if(priceEl) priceEl.textContent = "$" + p.toLocaleString("en-US");
+      if(valEl) valEl.textContent = sq.toLocaleString("en-US") + " sq ft";
+      update();
+    }
+    slider.addEventListener("input", sync);
+    slider.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    slider.addEventListener("click", function(e){ e.stopPropagation(); });
+    sync();
+  }
+  initSqftCard({radio:"patioRadio", slider:"patioSqft", price:"patioPrice", val:"patioSqftVal", rate:0.25, bump:100, name:"Concrete patio"});
+  initSqftCard({radio:"deckRadio", slider:"deckSqft", price:"deckPrice", val:"deckSqftVal", rate:0.35, bump:100, name:"Wood deck"});
   cards.forEach(function(r){
     var label = r.closest(".pkg-card");
     if (label) {
