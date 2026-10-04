@@ -111,6 +111,17 @@
   </div>
 </section>
 
+<section class="section" id="quiz">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">Not sure where to start</p>
+      <h2>What Does Your Home Need?</h2>
+      <p>Answer five quick questions and get an instant estimate built from our real pricing.</p>
+    </div>
+    <div class="quiz-card" id="quizCard" aria-live="polite"></div>
+  </div>
+</section>
+
 <section class="section alt" id="reviews">
   <div class="wrap">
     <div class="section-head">
@@ -438,6 +449,122 @@
         alert("Something went wrong sending your request. Please call (251) 767-0754.");
       });
   });
+})();
+</script>
+<script>
+(function(){
+  var card = document.getElementById("quizCard");
+  if(!card) return;
+
+  var QUESTIONS = [
+    { id:"stories", title:"How tall is your home?",
+      answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
+    { id:"siding", title:"Look at your siding. What do you see?",
+      answers:[ {t:"Green or black streaks", svc:"house"},
+                {t:"A layer of dust and pollen", svc:"house"},
+                {t:"Clean and bright", svc:null} ] },
+    { id:"driveway", title:"Now the driveway and walkways.",
+      answers:[ {t:"Dark stains and buildup", svc:"driveway"},
+                {t:"A little dirty", svc:"driveway"},
+                {t:"Looking good", svc:null} ] },
+    { id:"gutters", title:"When were your gutters last cleaned out?",
+      answers:[ {t:"Over a year ago", svc:"gutter"},
+                {t:"Honestly can't remember", svc:"gutter"},
+                {t:"Recently, they are fine", svc:null} ] },
+    { id:"windows", title:"And your windows?",
+      answers:[ {t:"Spots and grime", svc:"windows"},
+                {t:"Clear enough", svc:null} ] }
+  ];
+
+  var step = 0;            /* 0..QUESTIONS.length, == length means result */
+  var picked = {};         /* qid -> answer object */
+
+  function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
+
+  function serviceDef(svc){
+    var two = story() === "two";
+    if(svc === "house")    return { name: two ? "House soft wash (two story)" : "House soft wash (one story)", price: two ? 649 : 449, tag: null };
+    if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
+    if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
+    if(svc === "windows")  return { name: two ? "Window cleaning (two story)" : "Window cleaning (one story)", price: two ? 179 : 129, tag: "Up to 10 windows" };
+    return null;
+  }
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+  function renderQuestion(){
+    var q = QUESTIONS[step];
+    var pct = Math.round((step / QUESTIONS.length) * 100);
+    var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>'
+      + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
+      + '<h3 class="quiz-q">' + esc(q.title) + '</h3><div class="quiz-answers">';
+    q.answers.forEach(function(a, i){
+      html += '<button type="button" class="quiz-answer" data-i="' + i + '">' + esc(a.t) + '</button>';
+    });
+    html += '</div>';
+    if(step > 0) html += '<button type="button" class="quiz-back" id="quizBack">&larr; Back</button>';
+    card.innerHTML = html;
+    card.querySelectorAll(".quiz-answer").forEach(function(b){
+      b.addEventListener("click", function(){
+        picked[q.id] = q.answers[parseInt(b.dataset.i, 10)];
+        step++;
+        render();
+      });
+    });
+    var back = document.getElementById("quizBack");
+    if(back) back.addEventListener("click", function(){ step--; render(); });
+  }
+
+  function renderResult(){
+    var items = [];
+    QUESTIONS.forEach(function(q){
+      var a = picked[q.id];
+      if(a && a.svc && items.indexOf(a.svc) === -1) items.push(a.svc);
+    });
+    var pct = 100;
+    var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>';
+    if(items.length === 0){
+      html += '<h3 class="quiz-q">Your home is in great shape.</h3>'
+        + '<p class="quiz-note" style="font-size:1rem;">Want to keep it that way? A yearly soft wash keeps the green streaks away and protects your siding.</p>'
+        + '<div class="quiz-actions">'
+        + '<a class="btn btn-primary" href="#quote">Get a Free Quote</a>'
+        + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
+        + '</div>'
+        + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    } else {
+      var sub = 0, rows = "";
+      items.forEach(function(svc){
+        var d = serviceDef(svc);
+        sub += d.price;
+        rows += '<li><span class="qn">' + esc(d.name) + (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '')
+          + '</span><span class="qp">$' + d.price + '</span></li>';
+      });
+      html += '<h3 class="quiz-q">Here is what your home needs</h3>'
+        + '<ul class="quiz-result-list">' + rows + '</ul>'
+        + '<div class="quiz-total"><span>Estimated total</span><span>$' + sub + '</span></div>';
+      if(items.length >= 3){
+        var save = Math.round(sub * 0.10);
+        html += '<p class="quiz-save">Bundle bonus: 3 or more services saves you 10% on the pay page. That is $' + save + ' off, bringing your estimate to $' + (sub - save) + '.</p>';
+      }
+      html += '<p class="quiz-note">Estimates use our standard pricing. We confirm every price with satellite measurements before work begins.</p>'
+        + '<div class="quiz-actions">'
+        + '<a class="btn btn-primary" href="pay.html">Build This Package</a>'
+        + '<a class="btn btn-ghost" href="#quote">Get a Free Quote</a>'
+        + '</div>'
+        + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    }
+    card.innerHTML = html;
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function render(){
+    if(step < QUESTIONS.length) renderQuestion();
+    else renderResult();
+  }
+  render();
 })();
 </script>
 </body>
