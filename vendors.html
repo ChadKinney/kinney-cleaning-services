@@ -62,7 +62,12 @@
         <div class="field"><label for="vphone">Phone</label><input id="vphone" name="phone" type="tel" required></div>
         <div class="field"><label for="vcompany">Company</label><input id="vcompany" name="company" required></div>
         <div class="field"><label for="vsite">Company Website</label><input id="vsite" name="website" type="url" placeholder="https://"></div>
-        <div class="field full"><label for="vwhat">What are you selling?</label><select id="vwhat" name="offering"><option>Marketing / SEO / Advertising</option><option>Business software / CRM</option><option>Cleaning equipment / supplies</option><option>Insurance / financial services</option><option>Other</option></select></div>
+        <div class="field"><label for="vstreet">Street Address</label><input id="vstreet" name="street" required autocomplete="street-address"></div>
+        <div class="field"><label for="vcity">City</label><input id="vcity" name="city" required autocomplete="address-level2"></div>
+        <div class="field"><label for="vstate">State</label><input id="vstate" name="state" required autocomplete="address-level1"></div>
+        <div class="field"><label for="vzip">ZIP Code</label><input id="vzip" name="zip" required inputmode="numeric" autocomplete="postal-code"></div>
+        <div class="field full"><label for="vwhat">What services or products do you offer?</label><select id="vwhat" name="offering"><option>Marketing / SEO / Advertising</option><option>Business software / CRM</option><option>Cleaning equipment / supplies</option><option>Insurance / financial services</option><option>Other</option></select></div>
+        <div class="field full"><label for="vwhycontact">Why are you contacting us?</label><textarea id="vwhycontact" name="why_contact" required placeholder="What do you want from us, exactly?"></textarea></div>
         <div class="field full"><label for="vdesc">Describe your product or service in detail (200 character minimum)</label><textarea id="vdesc" name="description" minlength="200" required placeholder="What exactly do you offer, and how does it work?"></textarea></div>
         <div class="field"><label for="vprice">Pricing — what does it cost?</label><input id="vprice" name="pricing" required placeholder="Be specific"></div>
         <div class="field"><label for="vterms">Contract terms</label><input id="vterms" name="contract_terms" placeholder="Contract length, cancellation policy"></div>
@@ -118,7 +123,11 @@ document.getElementById('vendorForm').addEventListener('submit', function(e){
     'Phone: ' + v('vphone'),
     'Company: ' + v('vcompany'),
     'Website: ' + v('vsite'),
-    'Selling: ' + v('vwhat'),
+    'Address: ' + v('vstreet') + ', ' + v('vcity') + ', ' + v('vstate') + ' ' + v('vzip'),
+    'Offering: ' + v('vwhat'),
+    '',
+    'Why they are contacting us:',
+    v('vwhycontact'),
     '',
     'Description:',
     v('vdesc'),
