@@ -54,6 +54,11 @@
 .house-sqft-val{display:block;text-align:center;font-size:1.3rem;font-weight:800;color:#0369a1;margin-bottom:6px}
 .house-slider{width:100%;accent-color:#0ea5e9}
 .house-slider-ends{display:flex;justify-content:space-between;font-size:.78rem;color:#64748b;margin-bottom:4px}
+.room-steppers{margin-top:10px;display:grid;gap:8px}
+.stepper-row{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--navy);font-weight:600}
+.stepper{display:inline-flex;align-items:center;gap:10px}
+.stepper button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1rem;line-height:1;cursor:pointer;color:var(--blue);font-weight:700}
+.stepper b{min-width:22px;text-align:center}
 .total-bar{position:fixed;left:0;right:0;bottom:0;background:#0c4a6e;color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:50;box-shadow:0 -4px 18px rgba(0,0,0,.18)}
 .total-bar .t-label{font-size:.85rem;opacity:.85}
 .total-bar .t-amount{font-size:1.5rem;font-weight:800}
@@ -263,6 +268,28 @@ body{padding-bottom:86px}
         <label class="pkg-card"><input type="radio" name="tile" value="379" data-name="Tile & grout: 3 rooms">
           <div class="pkg-top"><span class="pkg-name">3 Rooms</span><span class="pkg-price">$379</span></div>
           <p class="pkg-detail">Up to 600 sq ft total. More rooms? <a href="index.html#quote">Custom quote</a>.</p></label>
+      </div>
+    </div>
+
+    <div class="pkg-cat">
+      <h3>🛋️ Interior Home Cleaning</h3>
+      <p class="cat-note">Whole home standard cleaning, priced by size and room count. Kitchens, living areas, bedrooms and bathrooms included.</p>
+      <div class="pkg-grid">
+        <label class="pkg-card"><input type="radio" name="interior" id="interiorRadio" value="295" data-name="Interior cleaning (3 bd, 2 ba, 2 living areas, 1,500 sq ft)">
+          <div class="pkg-top"><span class="pkg-name">Interior Cleaning</span><span class="pkg-price" id="interiorPrice">$295</span></div>
+          <div class="house-controls">
+            <output class="house-sqft-val" id="interiorSqftVal">1,500 sq ft</output>
+            <input type="range" class="house-slider" id="interiorSqft" min="500" max="3000" step="100" value="1500">
+            <div class="house-slider-ends"><span>500</span><span>3,000</span></div>
+            <div class="room-steppers">
+              <div class="stepper-row"><span>Bedrooms</span><span class="stepper"><button type="button" data-room="bed" data-dir="-1" aria-label="Fewer bedrooms">−</button><b id="bedVal">3</b><button type="button" data-room="bed" data-dir="1" aria-label="More bedrooms">+</button></span></div>
+              <div class="stepper-row"><span>Bathrooms</span><span class="stepper"><button type="button" data-room="bath" data-dir="-1" aria-label="Fewer bathrooms">−</button><b id="bathVal">2</b><button type="button" data-room="bath" data-dir="1" aria-label="More bathrooms">+</button></span></div>
+              <div class="stepper-row"><span>Living areas</span><span class="stepper"><button type="button" data-room="liv" data-dir="-1" aria-label="Fewer living areas">−</button><b id="livVal">2</b><button type="button" data-room="liv" data-dir="1" aria-label="More living areas">+</button></span></div>
+            </div>
+          </div>
+          <p class="pkg-detail">Standard cleaning for homes up to 3,000 sq ft. Larger home? <a href="index.html#quote">Custom quote</a>.</p></label>
+        <div class="pkg-card"><div class="pkg-top"><span class="pkg-name">Business Interior Cleaning</span><span class="pkg-price">Custom</span></div>
+          <p class="pkg-detail">Offices, retail and commercial spaces are quoted individually. <a href="index.html#quote">Contact us for a custom quote</a> or call/text <a href="tel:+12517670754">(251) 767-0754</a>.</p></div>
       </div>
     </div>
 
@@ -650,6 +677,41 @@ body{padding-bottom:86px}
   }
   initSqftCard({radio:"patioRadio", slider:"patioSqft", price:"patioPrice", val:"patioSqftVal", rate:0.25, bump:100, name:"Concrete patio"});
   initSqftCard({radio:"deckRadio", slider:"deckSqft", price:"deckPrice", val:"deckSqftVal", rate:0.35, bump:100, name:"Wood deck"});
+  /* Interior cleaning: $0.12 per sq ft + $15 per bedroom + $25 per bathroom + $10 per living area, $149 minimum. */
+  var interiorRadio = document.getElementById("interiorRadio");
+  var interiorSlider = document.getElementById("interiorSqft");
+  var interiorPriceEl = document.getElementById("interiorPrice");
+  var interiorSqftVal = document.getElementById("interiorSqftVal");
+  var rooms = {bed:3, bath:2, liv:2};
+  var roomMin = {bed:1, bath:1, liv:1};
+  var roomMax = {bed:6, bath:5, liv:6};
+  var roomValId = {bed:"bedVal", bath:"bathVal", liv:"livVal"};
+  function syncInterior(){
+    var sq = parseInt(interiorSlider.value, 10);
+    var p = Math.round(sq * 0.12 + rooms.bed * 15 + rooms.bath * 25 + rooms.liv * 10);
+    p = Math.max(p, 149);
+    interiorRadio.value = p;
+    interiorRadio.setAttribute("data-name", "Interior cleaning (" + rooms.bed + " bd, " + rooms.bath + " ba, " + rooms.liv + " living areas, " + sq.toLocaleString("en-US") + " sq ft)");
+    interiorPriceEl.textContent = "$" + p.toLocaleString("en-US");
+    interiorSqftVal.textContent = sq.toLocaleString("en-US") + " sq ft";
+    for (var k in roomValId) { document.getElementById(roomValId[k]).textContent = rooms[k]; }
+    update();
+  }
+  if(interiorRadio && interiorSlider){
+    interiorSlider.addEventListener("input", syncInterior);
+    interiorSlider.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+    interiorSlider.addEventListener("click", function(e){ e.stopPropagation(); });
+    document.querySelectorAll(".stepper button").forEach(function(b){
+      b.addEventListener("click", function(e){
+        e.stopPropagation(); e.preventDefault();
+        var room = b.getAttribute("data-room");
+        var dir = parseInt(b.getAttribute("data-dir"), 10);
+        rooms[room] = Math.min(roomMax[room], Math.max(roomMin[room], rooms[room] + dir));
+        syncInterior();
+      });
+    });
+    syncInterior();
+  }
   cards.forEach(function(r){
     var label = r.closest(".pkg-card");
     if (label) {
