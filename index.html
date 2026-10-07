@@ -477,9 +477,9 @@
       answers:[ {t:"My home", v:"res"}, {t:"A business", v:"com"} ] },
     { id:"stories", title:"How tall is your home?",
       answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
-    { id:"surface", title:"What is the outside of your home made of?",
+    { id:"surface", title:"What is the outside of your home made of?", multi:true, hint:"Tap all that apply",
       answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
-                {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"}, {t:"Combination", v:"combo"} ] },
+                {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"} ] },
     { id:"sqft", type:"slider", title:"About how many square feet is your home?",
       min:1000, max:4000, step:250, def:2000 },
     { id:"patio", title:"Do you have a concrete patio?",
@@ -513,10 +513,16 @@
   var step = 0;            /* 0..QUESTIONS.length, == length means result */
   var picked = {};         /* qid -> answer object */
 
-  var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco", combo:"Combination" };
+  var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco" };
 
   function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
-  function surface(){ return (picked.surface && picked.surface.v) || "vinyl"; }
+  function surface(){
+    var sel = picked.surface;
+    if(!sel) return "Vinyl";
+    var arr = Array.isArray(sel) ? sel : [sel];
+    if(!arr.length) return "Vinyl";
+    return arr.map(function(a){ return SURFACE_LABEL[a.v] || a.t; }).join(", ");
+  }
 
   function recommendedServices(){
     var items = [];
@@ -557,7 +563,7 @@
     if(svc === "house"){
       return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
                price: houseWashPrice(),
-               tag: SURFACE_LABEL[surface()] + " exterior, " + fmt(sqft()) + " sq ft" };
+               tag: surface() + " exterior, " + fmt(sqft()) + " sq ft" };
     }
     if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
     if(svc === "patio") return { name: "Concrete patio cleaning", price: patioPrice(),
@@ -577,6 +583,7 @@
     var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>'
       + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
       + '<h3 class="quiz-q">' + esc(q.title) + '</h3>';
+    if(q.hint) html += '<p class="quiz-hint">' + esc(q.hint) + '</p>';
     if(q.type === "slider"){
       var sval = sliderVal(q.id, q.def);
       html += '<div class="quiz-slider-wrap">'
@@ -587,9 +594,10 @@
       html += '</div>';
     } else {
       html += '<div class="quiz-answers">';
+      var selArr = q.multi ? (picked[q.id] || []) : null;
       q.answers.forEach(function(a, i){
-        var sel = picked[q.id] === a ? " selected" : "";
-        html += '<button type="button" class="quiz-answer' + sel + '" data-i="' + i + '">' + esc(a.t) + '</button>';
+        var isSel = q.multi ? (selArr.indexOf(a) !== -1) : (picked[q.id] === a);
+        html += '<button type="button" class="quiz-answer' + (isSel ? " selected" : "") + '" data-i="' + i + '">' + esc(a.t) + '</button>';
       });
       html += '</div>';
     }
@@ -613,18 +621,28 @@
     } else {
       card.querySelectorAll(".quiz-answer").forEach(function(b){
         b.addEventListener("click", function(){
-          card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
-          b.classList.add("selected");
           var ans = q.answers[parseInt(b.dataset.i, 10)];
-          picked[q.id] = ans;
-          if(q.id === "patio" && !ans.v) delete picked.patioSqft;
-          if(q.id === "deck" && !ans.v) delete picked.deckSqft;
-          document.getElementById("quizNext").disabled = false;
+          if(q.multi){
+            var arr = picked[q.id] || [];
+            var at = arr.indexOf(ans);
+            if(at !== -1){ arr.splice(at, 1); b.classList.remove("selected"); }
+            else { arr.push(ans); b.classList.add("selected"); }
+            picked[q.id] = arr;
+            document.getElementById("quizNext").disabled = arr.length === 0;
+          } else {
+            card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
+            b.classList.add("selected");
+            picked[q.id] = ans;
+            if(q.id === "patio" && !ans.v) delete picked.patioSqft;
+            if(q.id === "deck" && !ans.v) delete picked.deckSqft;
+            document.getElementById("quizNext").disabled = false;
+          }
         });
       });
     }
     var next = document.getElementById("quizNext");
-    next.disabled = (q.type !== "slider") && !picked[q.id];
+    var hasPick = q.multi ? (picked[q.id] && picked[q.id].length > 0) : !!picked[q.id];
+    next.disabled = (q.type !== "slider") && !hasPick;
     next.addEventListener("click", function(){
       if(!picked[q.id]) return;
       if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
@@ -641,7 +659,9 @@
     var lines = ["Website quiz result:"];
     QUESTIONS.forEach(function(q){
       var a = picked[q.id];
-      if(a) lines.push(q.title + " " + a.t);
+      if(!a) return;
+      var label = Array.isArray(a) ? a.map(function(x){ return x.t; }).join(", ") : a.t;
+      lines.push(q.title + " " + label);
     });
     var items = recommendedServices();
     if(items.length){
