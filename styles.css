@@ -299,3 +299,10 @@ a { color: var(--blue); }
 .wx-draw { font-size: .78rem; color: #9fd0ff; margin-top: 2px; }
 .wx-note { margin: 14px 0 0; font-size: .9rem; opacity: .9; }
 .wx-note a { color: #ffd166; font-weight: 700; }
+
+/* Supply list items */
+.supply-item { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 14px 0; box-shadow: var(--shadow); }
+.supply-item h4 { margin: 0 0 8px; color: var(--navy); font-size: 1.02rem; }
+.supply-item p { margin: 0 0 12px; font-size: .93rem; color: #334155; }
+.supply-btn { display: inline-block; background: #ff9900; color: #111; font-weight: 700; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: .92rem; }
+.supply-btn:hover { background: #e88b00; }
