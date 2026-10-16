@@ -698,8 +698,8 @@
         var d = serviceDef(id);
         var sub = (id === "patio" || id === "deck")
           ? '<span class="qtag">Priced by size</span>' : (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '');
-        html += '<button type="button" class="quiz-answer' + (svcPicked(id) ? " selected" : "") + '" data-svc="' + id + '">'
-          + esc(d.name) + sub + '</button>';
+        html += '<button type="button" class="quiz-answer quiz-svc' + (svcPicked(id) ? " selected" : "") + '" data-svc="' + id + '">'
+          + '<span>' + esc(d.name) + sub + '</span></button>';
       });
       html += '</div>';
     } else {
