@@ -814,6 +814,26 @@
     return lines.join("\n");
   }
 
+  // Carry the quiz picks to the pay page so the package is pre built and the
+  // price shows right away, no rebuilding needed.
+  function payUrl(){
+    var p = ["from=quiz"];
+    var svcs = picked.services || [];
+    if(svcs.length) p.push("svc=" + svcs.join(","));
+    p.push("sqft=" + sqft());
+    if(isExt()){
+      p.push("stories=" + story());
+      if(pilingOn()) p.push("pilings=yes");
+    }
+    if(picked.patioSqft) p.push("patioSqft=" + picked.patioSqft);
+    if(picked.deckSqft) p.push("deckSqft=" + picked.deckSqft);
+    if(kind() === "home_int"){
+      var r = roomsVal();
+      p.push("bed=" + r.bed + "&bath=" + r.bath + "&liv=" + r.liv);
+    }
+    return "pay.html?" + p.join("&");
+  }
+
   function wireQuizQuote(){
     card.querySelectorAll(".quiz-quote").forEach(function(a){
       a.addEventListener("click", function(){
@@ -905,7 +925,7 @@
       }
       html += '<p class="quiz-note">Estimates use our standard pricing. We confirm every price with satellite measurements before work begins.</p>'
         + '<div class="quiz-actions">'
-        + '<a class="btn btn-primary" href="pay.html">Build This Package</a>'
+        + '<a class="btn btn-primary" href="' + esc(payUrl()) + '">Build This Package</a>'
         + '<a class="btn btn-ghost quiz-quote" href="#quote">Get a Free Quote</a>'
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';

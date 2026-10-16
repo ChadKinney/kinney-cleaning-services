@@ -336,8 +336,7 @@ body{padding-bottom:86px}
 
     <div class="pkg-cat" id="returnBox">
       <h3>🔁 Returning Customer — 25% Off</h3>
-      <p class="cat-note">Cleaned with us before? Check the box and enter the phone or email from your last booking — we verify every returning customer discount against our records.</p>
-      <div class="pkg-grid">
+      <p class="cat-note">Cleaned with us before? Check the box and enter the phone or email from your last booking — we verify every returning customer discount against our records.</p>      <div class="pkg-grid">
         <label class="pkg-card" id="retCard"><input type="checkbox" id="retCheck">
           <div class="pkg-top"><span class="pkg-name">I'm a returning customer</span><span class="pkg-price">−25%</span></div>
           <p class="pkg-detail">We verify against our booking records before honoring the discount.</p></label>
@@ -347,6 +346,7 @@ body{padding-bottom:86px}
         <input class="lead-input" type="text" id="retInfo" placeholder="e.g. (251) 555-1234 or you@email.com" autocomplete="off">
       </div>
     </div>
+    <p class="cat-note" style="text-align:center;">Only one discount applies per order. If more than one fits you, we automatically give you the best one.</p>
 
     <div class="pkg-cat" id="dateBox">
       <h3>📅 Preferred Service Date</h3>
@@ -531,30 +531,27 @@ body{padding-bottom:86px}
     document.querySelectorAll(".pkg-card input[type=radio]:not(:checked)").forEach(function(r){
       r.closest(".pkg-card").classList.remove("selected");
     });
-    var discount = 0;
-    if (count >= 3) { discount = Math.round(total * 0.10); }
+    var bundleOk = count >= 3;
     var retOn = retCheck.checked;
-    var retDiscount = 0;
+    var retOk = retOn && retInfo.value.trim() !== "";
+    var vetOn = vetCheck.checked;
+    var vetOk = vetOn && branchSel.value !== "";
     retRow.style.display = retOn ? "block" : "none";
     retCard.classList.toggle("selected", retOn);
-    if (retOn && retInfo.value.trim() !== "") {
-      retDiscount = Math.round((total - discount) * 0.25);
-    }
-    var vetOn = vetCheck.checked;
-    var vetDiscount = 0;
     branchRow.style.display = vetOn ? "block" : "none";
     vetCard.classList.toggle("selected", vetOn);
-    if (vetOn && branchSel.value !== "") {
-      vetDiscount = Math.round((total - discount - retDiscount) * 0.10);
-    }
-    var finalTotal = total - discount - retDiscount - vetDiscount;
+    // Best single discount only, never stacked.
+    var discRate = 0, discLabel = "";
+    if (retOk) { discRate = 0.25; discLabel = "Returning customer discount"; }
+    else if (vetOk) { discRate = 0.10; discLabel = "Veteran discount (" + branchSel.value + ")"; }
+    else if (bundleOk) { discRate = 0.10; discLabel = "Bundle discount (3 or more services)"; }
+    var discount = Math.round(total * discRate);
+    var finalTotal = total - discount;
     totalEl.textContent = fmt(finalTotal);
     var notes = [];
-    if (discount > 0) { notes.push("Bundle discount (3+ services): you save " + fmt(discount)); }
-    if (retDiscount > 0) { notes.push("Returning customer discount: you save " + fmt(retDiscount)); }
-    else if (retOn) { notes.push("Enter the phone or email from your last booking to apply the returning customer discount."); }
-    if (vetDiscount > 0) { notes.push("Veteran discount (" + branchSel.value + "): you save " + fmt(vetDiscount)); }
-    else if (vetOn) { notes.push("Select your branch of service to apply the veteran discount."); }
+    if (discount > 0) { notes.push(discLabel + ": you save " + fmt(discount)); }
+    if (retOn && !retOk) { notes.push("Enter the phone or email from your last booking to apply the returning customer discount."); }
+    if (vetOn && !vetOk) { notes.push("Select your branch of service to apply the veteran discount."); }
     var dateVal = dateInput ? dateInput.value : "";
     if (dateVal) { notes.push("Preferred date: " + fmtDate(dateVal)); }
     if (count > 0 && notes.length === 0) { notes.push(count + (count === 1 ? " service" : " services") + " selected"); }
@@ -595,9 +592,7 @@ body{padding-bottom:86px}
       function discRow(label, amt){
         return '<div class="cs-disc"><span>' + label + '</span><span>−' + fmt(amt) + '</span></div>';
       }
-      if (discount > 0) { totHtml += discRow("Bundle discount (3 or more services)", discount); }
-      if (retDiscount > 0) { totHtml += discRow("Returning customer discount", retDiscount); }
-      if (vetDiscount > 0) { totHtml += discRow("Veteran discount", vetDiscount); }
+      if (discount > 0) { totHtml += discRow(discLabel, discount); }
       totHtml += '<div class="cs-total"><span>Total due</span><span>' + fmt(finalTotal) + '</span></div>';
       csTotals.innerHTML = totHtml;
     }
@@ -607,8 +602,8 @@ body{padding-bottom:86px}
         if (STRIPE_LINK.indexOf("__STRIPE") === 0) {
           e.preventDefault();
           var msg = "Online payments go live soon! To book your " + fmt(finalTotal) + " package today, call or text (251) 767-0754.";
-          if (vetDiscount > 0) { msg += " (Veteran discount applied — have your military ID ready.)"; }
-          if (retDiscount > 0) { msg += " (Returning customer discount applied — we'll verify your previous booking.)"; }
+          if (discLabel.indexOf("Veteran") === 0) { msg += " (Veteran discount applied — have your military ID ready.)"; }
+          if (discLabel.indexOf("Returning") === 0) { msg += " (Returning customer discount applied — we'll verify your previous booking.)"; }
           alert(msg);
         } else {
           e.preventDefault();
@@ -747,6 +742,66 @@ body{padding-bottom:86px}
   retCheck.addEventListener("change", update);
   retInfo.addEventListener("input", update);
   update();
+  /* Quiz handoff: pre build the package from the homepage quiz answers so the
+     customer sees their price right away without rebuilding it. */
+  (function(){
+    var q;
+    try { q = new URLSearchParams(window.location.search); } catch(e){ return; }
+    if(q.get("from") !== "quiz") return;
+    var svcs = (q.get("svc") || "").split(",").filter(function(s){ return !!s; });
+    function has(s){ return svcs.indexOf(s) !== -1; }
+    function checkRadio(name, value){
+      var sel = 'input[type=radio][name="' + name + '"]';
+      if(value != null) sel += '[value="' + value + '"]';
+      var r = document.querySelector(sel);
+      if(r) r.checked = true;
+    }
+    function setSlider(id, val, min, max){
+      var s = document.getElementById(id);
+      if(!s) return;
+      var v = parseInt(val, 10);
+      if(isNaN(v)) return;
+      s.value = Math.min(max, Math.max(min, v));
+      s.dispatchEvent(new Event("input"));
+    }
+    var sq = parseInt(q.get("sqft") || "2000", 10);
+    if(has("house") && typeof syncHouse === "function"){
+      setSlider("houseSqft", isNaN(sq) ? 2000 : sq, 1000, 4000);
+      var st = q.get("stories") === "two" ? "two" : "one";
+      houseStory = st;
+      document.querySelectorAll(".story-pill").forEach(function(x){
+        if(x !== pilingPill) x.classList.toggle("active", x.getAttribute("data-story") === st);
+      });
+      if(q.get("pilings") === "yes" && pilingPill){
+        housePiling = true;
+        pilingPill.classList.add("active");
+      }
+      syncHouse();
+      checkRadio("house");
+    }
+    if(has("roof")) checkRadio("roof");
+    if(has("driveway")) checkRadio("driveway", "199");
+    if(has("gutter")) checkRadio("gutters");
+    if(has("windows")) checkRadio("windows", q.get("stories") === "two" ? "179" : "129");
+    if(has("patio")){
+      setSlider("patioSqft", q.get("patioSqft") || "400", 200, 10000);
+      checkRadio("patio");
+    }
+    if(has("deck")){
+      setSlider("deckSqft", q.get("deckSqft") || "300", 200, 10000);
+      checkRadio("deck");
+    }
+    if(has("interior") && typeof syncInterior === "function"){
+      setSlider("interiorSqft", isNaN(sq) ? 1500 : sq, 500, 3000);
+      var bed = parseInt(q.get("bed") || "3", 10), bath = parseInt(q.get("bath") || "2", 10), liv = parseInt(q.get("liv") || "2", 10);
+      if(!isNaN(bed)) rooms.bed = Math.min(6, Math.max(1, bed));
+      if(!isNaN(bath)) rooms.bath = Math.min(5, Math.max(1, bath));
+      if(!isNaN(liv)) rooms.liv = Math.min(6, Math.max(1, liv));
+      syncInterior();
+      checkRadio("interior");
+    }
+    update();
+  })();
 })();
 </script>
 
