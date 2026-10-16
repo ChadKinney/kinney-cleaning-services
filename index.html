@@ -845,27 +845,21 @@
     });
   }
 
-  function quizUnlocked(){
-    try { return localStorage.getItem("kcs_lead_ok") === "1"; } catch(e){ return false; }
-  }
+  var quizStarted = false;   /* the lead form comes before the quiz */
+  var leadName = "", leadPhone = "";
 
-  function renderQuizGate(){
-    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
-      + '<h3 class="quiz-q">Your estimate is ready.</h3>'
-      + '<p class="quiz-note" style="font-size:1rem;margin-bottom:16px;">Enter your name and phone number to see your instant estimate.</p>'
+  function renderLeadFirst(){
+    var html = '<h3 class="quiz-q">Fill out form to take quiz</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;margin-bottom:16px;">Enter your name and phone number, then take the quiz for your instant estimate.</p>'
       + '<form id="quizLeadForm">'
       + '<div class="field"><label for="qzName">Name</label><input id="qzName" name="name" required autocomplete="name"></div>'
       + '<div class="field"><label for="qzPhone">Phone</label><input id="qzPhone" name="phone" type="tel" required autocomplete="tel"></div>'
       + '<div class="field"><label for="qzEmail">Email (optional)</label><input id="qzEmail" name="email" type="email" autocomplete="email"></div>'
       + '<p class="quiz-form-err" id="quizLeadError" style="display:none;"></p>'
-      + '<div class="quiz-actions"><button class="btn btn-primary" type="submit" id="quizLeadSubmit">Show My Estimate</button></div>'
+      + '<div class="quiz-actions"><button class="btn btn-primary" type="submit" id="quizLeadSubmit">Start the Quiz</button></div>'
       + '<p class="quiz-note" style="margin-top:12px;">We only use this to send your estimate. No spam, ever.</p>'
-      + '</form>'
-      + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+      + '</form>';
     card.innerHTML = html;
-    document.getElementById("quizRestart").addEventListener("click", function(){
-      step = 0; picked = {}; render();
-    });
     document.getElementById("quizLeadForm").addEventListener("submit", function(e){
       e.preventDefault();
       var btn = document.getElementById("quizLeadSubmit");
@@ -873,24 +867,25 @@
       err.style.display = "none";
       btn.disabled = true;
       btn.textContent = "Loading…";
+      leadName = document.getElementById("qzName").value;
+      leadPhone = document.getElementById("qzPhone").value;
       var body = new URLSearchParams(new FormData(e.target));
-      body.append("kind", "quiz estimate lead");
-      body.append("message", quizSummary());
+      body.append("kind", "quiz lead");
       fetch("https://formspree.io/f/xnpnylqz", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded","Accept":"application/json"}, body: body.toString()})
         .then(function(res){
           if(!res.ok){ throw new Error("submit failed"); }
           try { localStorage.setItem("kcs_lead_ok", "1"); } catch(e2){}
-          renderResult();
+          quizStarted = true; step = 0; picked = {}; render();
         })
         .catch(function(){
           btn.disabled = false;
-          btn.textContent = "Show My Estimate";
+          btn.textContent = "Start the Quiz";
           err.textContent = "Something went wrong. Please check your connection and try again.";
           err.style.display = "block";
         });
     });
-    card.scrollIntoView({ behavior:"smooth", block:"center" });
   }
+
 
   function renderResult(){
     if(kind() === "biz_int"){ renderCommercial(); return; }
@@ -905,10 +900,15 @@
         + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
-    } else if(!quizUnlocked()){
-      renderQuizGate();
-      return;
     } else {
+      // The lead form always comes before the quiz, so the estimate posts
+      // here with the contact info captured up front.
+      var eb = new URLSearchParams();
+      eb.append("kind", "quiz estimate");
+      eb.append("name", leadName);
+      eb.append("phone", leadPhone);
+      eb.append("message", quizSummary());
+      fetch("https://formspree.io/f/xnpnylqz", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded","Accept":"application/json"}, body: eb.toString()});
       var sub = 0, rows = "";
       items.forEach(function(svc){
         var d = serviceDef(svc);
@@ -973,6 +973,7 @@
   }
 
   function render(){
+    if(!quizStarted){ renderLeadFirst(); return; }
     if(step < QUESTIONS.length) renderQuestion();
     else renderResult();
   }
