@@ -128,7 +128,7 @@ body{padding-bottom:86px}
 
     <div class="pkg-cat">
       <h3>🏠 House Wash (Soft Wash)</h3>
-      <p class="cat-note">Gentle soft wash for siding, trim, and porches — priced by home size. Two story doubles the price.</p>
+      <p class="cat-note">Gentle soft wash for siding, trim, and porches — priced by home size. Two story doubles the price. Island homes on pilings add 50%.</p>
       <div class="pkg-grid">
         <label class="pkg-card"><input type="radio" name="house" id="houseRadio" value="532" data-name="House soft wash (one story, 2,000 sq ft)">
           <div class="pkg-top"><span class="pkg-name">House Wash</span><span class="pkg-price" id="housePrice">$532</span></div>
@@ -136,6 +136,9 @@ body{padding-bottom:86px}
             <div class="story-pills">
               <button type="button" class="story-pill active" data-story="one">One story</button>
               <button type="button" class="story-pill" data-story="two">Two story</button>
+            </div>
+            <div class="story-pills">
+              <button type="button" class="story-pill" id="pilingPill" style="flex:1;">Elevated on pilings</button>
             </div>
             <output class="house-sqft-val" id="houseSqftVal">2,000 sq ft</output>
             <input type="range" class="house-slider" id="houseSqft" min="1000" max="4000" step="250" value="2000">
@@ -620,16 +623,19 @@ body{padding-bottom:86px}
   }
   // Tap a selected card again to remove it. The label's native activation would
   // re-check the radio after we uncheck it, so cancel it and set state manually.
-  /* House wash priced by square feet: $349 at 1,000 sq ft, $899 at 4,000 sq ft, two story doubles. */
+  /* House wash priced by square feet: $349 at 1,000 sq ft, $899 at 4,000 sq ft, two story doubles, pilings add 50%. */
   var houseRadio = document.getElementById("houseRadio");
   var houseSlider = document.getElementById("houseSqft");
   var housePriceEl = document.getElementById("housePrice");
   var houseSqftVal = document.getElementById("houseSqftVal");
+  var pilingPill = document.getElementById("pilingPill");
   var houseStory = "one";
+  var housePiling = false;
   function housePrice(sq, two){
     var t = (sq - 1000) / 3000;
     var p = 349 + t * 550;
     if(two) p *= 2;
+    if(housePiling) p *= 1.5;
     return Math.round(p);
   }
   function syncHouse(){
@@ -637,7 +643,7 @@ body{padding-bottom:86px}
     var two = houseStory === "two";
     var price = housePrice(sq, two);
     houseRadio.value = price;
-    houseRadio.setAttribute("data-name", "House soft wash (" + (two ? "two story" : "one story") + ", " + sq.toLocaleString("en-US") + " sq ft)");
+    houseRadio.setAttribute("data-name", "House soft wash (" + (two ? "two story" : "one story") + (housePiling ? ", on pilings" : "") + ", " + sq.toLocaleString("en-US") + " sq ft)");
     housePriceEl.textContent = "$" + price.toLocaleString("en-US");
     houseSqftVal.textContent = sq.toLocaleString("en-US") + " sq ft";
     update();
@@ -649,7 +655,13 @@ body{padding-bottom:86px}
     document.querySelectorAll(".story-pill").forEach(function(p){
       p.addEventListener("click", function(e){
         e.stopPropagation(); e.preventDefault();
-        document.querySelectorAll(".story-pill").forEach(function(x){ x.classList.remove("active"); });
+        if(p === pilingPill){
+          housePiling = !housePiling;
+          p.classList.toggle("active", housePiling);
+          syncHouse();
+          return;
+        }
+        document.querySelectorAll(".story-pill").forEach(function(x){ if(x !== pilingPill) x.classList.remove("active"); });
         p.classList.add("active");
         houseStory = p.getAttribute("data-story");
         syncHouse();
