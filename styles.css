@@ -349,3 +349,12 @@ a { color: var(--blue); }
 /* ---------- quiz lead gate ---------- */
 .quiz-form-err { color: #b91c1c; font-weight: 600; margin: 0 0 12px; }
 #quizLeadForm .field { margin-bottom: 14px; }
+
+/* Quiz service picker with prices + room steppers (Oct 16, 2026) */
+.quiz-answer.quiz-svc{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.quiz-svc-price{font-weight:800;color:#0369a1;white-space:nowrap}
+.quiz-svc .qtag{display:block;font-size:.8rem;color:#64748b;font-weight:400}
+.quiz-room-row{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid #f1f5f9;font-weight:600;color:var(--navy)}
+.quiz-stepper{display:flex;align-items:center;gap:14px}
+.quiz-stepper button{width:38px;height:38px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:1.2rem;font-weight:700;color:#0369a1;cursor:pointer;line-height:1}
+.quiz-stepper b{font-size:1.2rem;min-width:24px;text-align:center}

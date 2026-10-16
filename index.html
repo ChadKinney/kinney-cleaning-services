@@ -163,8 +163,8 @@
   <div class="wrap">
     <div class="section-head">
       <p class="kicker">Not sure where to start</p>
-      <h2>What Does Your Home Need?</h2>
-      <p>Answer a few quick questions and get an instant estimate built from our real pricing.</p>
+      <h2>What Do You Need Cleaned?</h2>
+      <p>Answer a few quick questions and get an instant estimate built from our real pricing. Home or business, inside or out.</p>
     </div>
     <div class="quiz-card" id="quizCard" aria-live="polite"></div>
   </div>
@@ -544,65 +544,57 @@
   var card = document.getElementById("quizCard");
   if(!card) return;
 
+  var KIND_LABEL = { home_ext:"My home exterior", home_int:"My home interior", biz_ext:"My business exterior", biz_int:"My business interior" };
+
   var QUESTIONS = [
-    { id:"ptype", title:"Is this for your home or a business?",
-      answers:[ {t:"My home", v:"res"}, {t:"A business", v:"com"} ] },
-    { id:"stories", title:"How tall is your home?",
-      answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ] },
-    { id:"surface", title:"What is the outside of your home made of?", multi:true, hint:"Tap all that apply",
-      answers:[ {t:"Vinyl", v:"vinyl"}, {t:"Wood", v:"wood"}, {t:"Concrete", v:"concrete"},
-                {t:"Brick", v:"brick"}, {t:"Stucco", v:"stucco"} ] },
-    { id:"sqft", type:"slider", title:"About how many square feet is your home?",
-      min:1000, max:4000, step:250, def:2000 },
-    { id:"patio", title:"Do you have a concrete patio?",
-      answers:[ {t:"No", v:0}, {t:"Yes, one", v:1, svc:"patio"}, {t:"Yes, two or more", v:2, svc:"patio"} ] },
+    { id:"kind", title:"What kind of cleaning do you need?",
+      answers:[ {t:"My home exterior", v:"home_ext"}, {t:"My home interior", v:"home_int"},
+                {t:"My business exterior", v:"biz_ext"}, {t:"My business interior", v:"biz_int"} ] },
+    { id:"stories", title:"How many stories is the building?",
+      answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ],
+      skip:function(){ return !isExt(); } },
+    { id:"rooms", type:"rooms", title:"How many rooms are we cleaning?",
+      skip:function(){ return kind() !== "home_int"; } },
+    { id:"sqft", type:"slider", title:"About how many square feet?" },
+    { id:"services", type:"services", multi:true, title:"Which services do you want?",
+      hint:"Tap all that apply. Prices shown are estimates.",
+      skip:function(){ return kind() === "biz_int"; } },
     { id:"patioSqft", type:"slider", title:"About how many total square feet of patio?",
       min:200, max:10000, step:100, def:400,
-      skip:function(){ return !(picked.patio && picked.patio.v > 0); } },
-    { id:"deck", title:"Do you have a wood deck?",
-      answers:[ {t:"No", v:0}, {t:"Yes, one", v:1, svc:"deck"}, {t:"Yes, two or more", v:2, svc:"deck"} ] },
+      skip:function(){ return !svcPicked("patio"); } },
     { id:"deckSqft", type:"slider", title:"About how many total square feet of deck?",
       min:200, max:10000, step:100, def:300,
-      skip:function(){ return !(picked.deck && picked.deck.v > 0); } },
-    { id:"siding", title:"Look at your siding. What do you see?",
-      answers:[ {t:"Green or black streaks", svc:"house"},
-                {t:"A layer of dust and pollen", svc:"house"},
-                {t:"Clean and bright", svc:null} ] },
-    { id:"driveway", title:"Now the driveway and walkways.",
-      answers:[ {t:"Dark stains and buildup", svc:"driveway"},
-                {t:"A little dirty", svc:"driveway"},
-                {t:"Looking good", svc:null} ] },
-    { id:"gutters", title:"When were your gutters last cleaned out?",
-      answers:[ {t:"Over a year ago", svc:"gutter"},
-                {t:"Honestly can't remember", svc:"gutter"},
-                {t:"Recently, they are fine", svc:null},
-                {t:"My home has no gutters", svc:null} ] },
-    { id:"windows", title:"And your windows?",
-      answers:[ {t:"Spots and grime", svc:"windows"},
-                {t:"Clear enough", svc:null} ] }
+      skip:function(){ return !svcPicked("deck"); } }
   ];
 
   var step = 0;            /* 0..QUESTIONS.length, == length means result */
   var picked = {};         /* qid -> answer object */
 
-  var SURFACE_LABEL = { vinyl:"Vinyl", concrete:"Concrete", wood:"Wood", brick:"Brick", stucco:"Stucco" };
-
+  function kind(){ return picked.kind && picked.kind.v; }
+  function isExt(){ return kind() === "home_ext" || kind() === "biz_ext"; }
+  function isHome(){ return kind() === "home_ext" || kind() === "home_int"; }
+  function svcPicked(svc){ var s = picked.services; return !!(s && s.indexOf(svc) !== -1); }
   function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
-  function surface(){
-    var sel = picked.surface;
-    if(!sel) return "Vinyl";
-    var arr = Array.isArray(sel) ? sel : [sel];
-    if(!arr.length) return "Vinyl";
-    return arr.map(function(a){ return SURFACE_LABEL[a.v] || a.t; }).join(", ");
+
+  function sqftCfg(){
+    var k = kind();
+    if(k === "home_int") return { min:500, max:3000, step:100, def:1500,
+      title:"About how many square feet is the interior?", over:false };
+    if(k === "biz_ext" || k === "biz_int") return { min:1000, max:20000, step:500, def:5000,
+      title:"About how many square feet is the building?", over:false };
+    return { min:1000, max:4000, step:250, def:2000,
+      title:"About how many square feet is the home?", over:true };
   }
 
-  function recommendedServices(){
-    var items = [];
-    QUESTIONS.forEach(function(q){
-      var a = picked[q.id];
-      if(a && a.svc && items.indexOf(a.svc) === -1) items.push(a.svc);
-    });
-    return items;
+  function visibleCount(){
+    var n = 0;
+    QUESTIONS.forEach(function(q){ if(!(q.skip && q.skip())) n++; });
+    return n;
+  }
+  function visibleIndex(){
+    var n = 0;
+    for(var i = 0; i <= step; i++){ if(!(QUESTIONS[i].skip && QUESTIONS[i].skip())) n++; }
+    return n;
   }
 
   /* House wash pricing by square feet. Approved by Chad Oct 4, 2026. */
@@ -610,18 +602,23 @@
   var SQFT_PRICE_AT_MIN = 349;   /* one story price at 1,000 sq ft */
   var SQFT_PRICE_AT_MAX = 899;   /* one story price at 4,000 sq ft */
 
-  function sqft(){ return sliderVal("sqft", 2000); }
+  function sqft(){ return sliderVal("sqft", sqftCfg().def); }
   function patioSqft(){ return sliderVal("patioSqft", 400); }
   function deckSqft(){ return sliderVal("deckSqft", 300); }
   function sliderVal(qid, def){ return (picked[qid] && picked[qid].v) || def; }
-  function patioCount(){ return (picked.patio && picked.patio.v) || 0; }
-  function deckCount(){ return (picked.deck && picked.deck.v) || 0; }
-  /* Patio and deck pricing: internet average $/sq ft + $100 per structure. Set Oct 4, 2026. */
+  function roomsVal(){ return picked.rooms || {bed:3, bath:2, liv:2}; }
+  /* Interior cleaning: $0.12 per sq ft + $15 per bedroom + $25 per bathroom + $10 per living area, $149 minimum. Matches the pay page. */
+  function interiorPrice(){
+    var r = roomsVal();
+    var p = Math.round(sqft() * 0.12 + r.bed * 15 + r.bath * 25 + r.liv * 10);
+    return Math.max(p, 149);
+  }
+  /* Patio and deck pricing: $/sq ft + $100 per structure. */
   var PATIO_PER_SQFT = 0.25;   /* concrete patio cleaning average */
   var DECK_PER_SQFT = 0.35;    /* wood deck cleaning average */
   var STRUCTURE_BUMP = 100;    /* added per patio or deck */
-  function patioPrice(){ return Math.round(PATIO_PER_SQFT * patioSqft() + STRUCTURE_BUMP * patioCount()); }
-  function deckPrice(){ return Math.round(DECK_PER_SQFT * deckSqft() + STRUCTURE_BUMP * deckCount()); }
+  function patioPrice(){ return Math.round(PATIO_PER_SQFT * patioSqft() + STRUCTURE_BUMP); }
+  function deckPrice(){ return Math.round(DECK_PER_SQFT * deckSqft() + STRUCTURE_BUMP); }
   function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
   function houseWashPrice(){
     var t = (sqft() - SQFT_MIN) / (SQFT_MAX - SQFT_MIN);
@@ -630,20 +627,30 @@
     return Math.round(p);
   }
 
+  function serviceOptions(){
+    if(kind() === "home_int") return ["interior"];
+    return ["house", "roof", "driveway", "gutter", "windows", "patio", "deck"];
+  }
+
   function serviceDef(svc){
-    var two = story() === "two";
+    var two = story() === "two", home = isHome();
     if(svc === "house"){
-      return { name: two ? "House soft wash (two story)" : "House soft wash (one story)",
-               price: houseWashPrice(),
-               tag: surface() + " exterior, " + fmt(sqft()) + " sq ft" };
+      return { name: (home ? "House soft wash" : "Building soft wash") + (two ? " (two story)" : " (one story)"),
+               price: houseWashPrice(), tag: fmt(sqft()) + " sq ft" };
     }
-    if(svc === "driveway") return { name: "Driveway cleaning", price: 199, tag: "Estimate, confirmed by satellite" };
-    if(svc === "patio") return { name: "Concrete patio cleaning", price: patioPrice(),
-      tag: fmt(patioSqft()) + " sq ft" + (patioCount() > 1 ? ", " + patioCount() + " patios" : "") };
-    if(svc === "deck") return { name: "Wood deck cleaning", price: deckPrice(),
-      tag: fmt(deckSqft()) + " sq ft" + (deckCount() > 1 ? ", " + deckCount() + " decks" : "") };
+    if(svc === "roof") return { name: "Roof soft wash", price: 549, tag: null };
+    if(svc === "driveway") return { name: home ? "Driveway cleaning" : "Parking area cleaning",
+      price: 199, tag: "Estimate, confirmed by satellite" };
     if(svc === "gutter")   return { name: "Gutter cleaning", price: 179, tag: null };
-    if(svc === "windows")  return { name: two ? "Window cleaning (two story)" : "Window cleaning (one story)", price: two ? 179 : 129, tag: "Up to 10 windows" };
+    if(svc === "windows")  return { name: "Window cleaning" + (two ? " (two story)" : " (one story)"),
+      price: two ? 179 : 129, tag: "Up to 10 windows" };
+    if(svc === "patio") return { name: "Patio cleaning", price: patioPrice(), tag: fmt(patioSqft()) + " sq ft" };
+    if(svc === "deck") return { name: "Deck cleaning", price: deckPrice(), tag: fmt(deckSqft()) + " sq ft" };
+    if(svc === "interior"){
+      var r = roomsVal();
+      return { name: "Interior cleaning", price: interiorPrice(),
+        tag: r.bed + " bd, " + r.bath + " ba, " + r.liv + " living areas, " + fmt(sqft()) + " sq ft" };
+    }
     return null;
   }
 
@@ -651,24 +658,49 @@
 
   function renderQuestion(){
     var q = QUESTIONS[step];
-    var pct = Math.round((step / QUESTIONS.length) * 100);
+    var pct = Math.round((visibleIndex() / visibleCount()) * 100);
+    var qTitle = (q.id === "sqft") ? sqftCfg().title : q.title;
     var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>'
-      + '<p class="quiz-count">Question ' + (step + 1) + ' of ' + QUESTIONS.length + '</p>'
-      + '<h3 class="quiz-q">' + esc(q.title) + '</h3>';
+      + '<p class="quiz-count">Question ' + visibleIndex() + ' of ' + visibleCount() + '</p>'
+      + '<h3 class="quiz-q">' + esc(qTitle) + '</h3>';
     if(q.hint) html += '<p class="quiz-hint">' + esc(q.hint) + '</p>';
     if(q.type === "slider"){
-      var sval = sliderVal(q.id, q.def);
+      var cfg = (q.id === "sqft") ? sqftCfg() : q;
+      var sval = sliderVal(q.id, cfg.def);
       html += '<div class="quiz-slider-wrap">'
         + '<output class="quiz-slider-val" id="quizSqftVal">' + fmt(sval) + ' sq ft</output>'
-        + '<input type="range" class="quiz-slider" id="quizSqft" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + sval + '">'
-        + '<div class="quiz-slider-ends"><span>' + fmt(q.min) + '</span><span>' + fmt(q.max) + '</span></div>';
-      if(q.id === "sqft") html += '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button>';
+        + '<input type="range" class="quiz-slider" id="quizSqft" min="' + cfg.min + '" max="' + cfg.max + '" step="' + cfg.step + '" value="' + sval + '">'
+        + '<div class="quiz-slider-ends"><span>' + fmt(cfg.min) + '</span><span>' + fmt(cfg.max) + '</span></div>';
+      if(q.id === "sqft" && cfg.over) html += '<button type="button" class="quiz-back" id="quizOver4000">My home is over 4,000 sq ft</button>';
+      html += '</div>';
+    } else if(q.type === "rooms"){
+      var rv = roomsVal();
+      var defs = [ {k:"bed", t:"Bedrooms", min:1, max:6}, {k:"bath", t:"Bathrooms", min:1, max:5}, {k:"liv", t:"Living areas", min:1, max:6} ];
+      html += '<div class="quiz-rooms">';
+      defs.forEach(function(d){
+        html += '<div class="quiz-room-row"><span>' + d.t + '</span><span class="quiz-stepper">'
+          + '<button type="button" data-room="' + d.k + '" data-dir="-1" aria-label="Fewer ' + d.t + '">−</button>'
+          + '<b id="room_' + d.k + '">' + rv[d.k] + '</b>'
+          + '<button type="button" data-room="' + d.k + '" data-dir="1" aria-label="More ' + d.t + '">+</button>'
+          + '</span></div>';
+      });
+      html += '</div>';
+    } else if(q.type === "services"){
+      html += '<div class="quiz-answers">';
+      serviceOptions().forEach(function(id){
+        var d = serviceDef(id);
+        var priceHtml = (id === "patio" || id === "deck")
+          ? '<span class="quiz-svc-price">Priced by size</span>'
+          : '<span class="quiz-svc-price">$' + fmt(d.price) + '</span>';
+        html += '<button type="button" class="quiz-answer quiz-svc' + (svcPicked(id) ? " selected" : "") + '" data-svc="' + id + '">'
+          + '<span>' + esc(d.name) + (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '') + '</span>'
+          + priceHtml + '</button>';
+      });
       html += '</div>';
     } else {
       html += '<div class="quiz-answers">';
-      var selArr = q.multi ? (picked[q.id] || []) : null;
       q.answers.forEach(function(a, i){
-        var isSel = q.multi ? (selArr.indexOf(a) !== -1) : (picked[q.id] === a);
+        var isSel = (picked[q.id] === a);
         html += '<button type="button" class="quiz-answer' + (isSel ? " selected" : "") + '" data-i="' + i + '">' + esc(a.t) + '</button>';
       });
       html += '</div>';
@@ -690,34 +722,58 @@
         picked.sqft = { t: "Over 4,000 sq ft", v: 4001 };
         renderBigHome();
       });
+    } else if(q.type === "rooms"){
+      var rooms = { bed: roomsVal().bed, bath: roomsVal().bath, liv: roomsVal().liv };
+      var lims = { bed:[1,6], bath:[1,5], liv:[1,6] };
+      picked.rooms = rooms;
+      card.querySelectorAll(".quiz-stepper button").forEach(function(b){
+        b.addEventListener("click", function(){
+          var k = b.dataset.room, dir = parseInt(b.dataset.dir, 10), lim = lims[k];
+          rooms[k] = Math.min(lim[1], Math.max(lim[0], rooms[k] + dir));
+          document.getElementById("room_" + k).textContent = rooms[k];
+        });
+      });
+    } else if(q.type === "services"){
+      card.querySelectorAll(".quiz-svc").forEach(function(b){
+        b.addEventListener("click", function(){
+          var id = b.dataset.svc;
+          var arr = picked.services || [];
+          var at = arr.indexOf(id);
+          if(at !== -1){
+            arr.splice(at, 1);
+            b.classList.remove("selected");
+            if(id === "patio") delete picked.patioSqft;
+            if(id === "deck") delete picked.deckSqft;
+          } else {
+            arr.push(id);
+            b.classList.add("selected");
+          }
+          picked.services = arr;
+          document.getElementById("quizNext").disabled = arr.length === 0;
+        });
+      });
     } else {
       card.querySelectorAll(".quiz-answer").forEach(function(b){
         b.addEventListener("click", function(){
           var ans = q.answers[parseInt(b.dataset.i, 10)];
-          if(q.multi){
-            var arr = picked[q.id] || [];
-            var at = arr.indexOf(ans);
-            if(at !== -1){ arr.splice(at, 1); b.classList.remove("selected"); }
-            else { arr.push(ans); b.classList.add("selected"); }
-            picked[q.id] = arr;
-            document.getElementById("quizNext").disabled = arr.length === 0;
-          } else {
-            card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
-            b.classList.add("selected");
-            picked[q.id] = ans;
-            if(q.id === "patio" && !ans.v) delete picked.patioSqft;
-            if(q.id === "deck" && !ans.v) delete picked.deckSqft;
-            document.getElementById("quizNext").disabled = false;
+          card.querySelectorAll(".quiz-answer").forEach(function(x){ x.classList.remove("selected"); });
+          b.classList.add("selected");
+          picked[q.id] = ans;
+          if(q.id === "kind"){
+            delete picked.services; delete picked.stories; delete picked.rooms;
+            delete picked.sqft; delete picked.patioSqft; delete picked.deckSqft;
           }
+          document.getElementById("quizNext").disabled = false;
         });
       });
     }
     var next = document.getElementById("quizNext");
-    var hasPick = q.multi ? (picked[q.id] && picked[q.id].length > 0) : !!picked[q.id];
-    next.disabled = (q.type !== "slider") && !hasPick;
+    var hasPick;
+    if(q.type === "slider" || q.type === "rooms") hasPick = true;
+    else hasPick = !!(picked[q.id] && picked[q.id].length !== 0);
+    next.disabled = !hasPick;
     next.addEventListener("click", function(){
-      if(!picked[q.id]) return;
-      if(q.id === "ptype" && picked.ptype.v === "com"){ renderCommercial(); return; }
+      if(q.type !== "slider" && q.type !== "rooms" && !picked[q.id]) return;
       nextStep(); render();
     });
     var back = document.getElementById("quizBack");
@@ -729,13 +785,14 @@
 
   function quizSummary(){
     var lines = ["Website quiz result:"];
-    QUESTIONS.forEach(function(q){
-      var a = picked[q.id];
-      if(!a) return;
-      var label = Array.isArray(a) ? a.map(function(x){ return x.t; }).join(", ") : a.t;
-      lines.push(q.title + " " + label);
-    });
-    var items = recommendedServices();
+    lines.push("Kind: " + (KIND_LABEL[kind()] || ""));
+    if(isExt()) lines.push("Stories: " + story());
+    if(kind() === "home_int"){
+      var r = roomsVal();
+      lines.push("Rooms: " + r.bed + " bd, " + r.bath + " ba, " + r.liv + " living areas");
+    }
+    lines.push("Sq ft: " + fmt(sqft()));
+    var items = picked.services || [];
     if(items.length){
       var sub = 0;
       lines.push("Recommended estimate:");
@@ -757,7 +814,7 @@
         var msg = document.getElementById("message");
         if(msg && !msg.value) msg.value = quizSummary();
         var st = document.getElementById("stype");
-        if(st && picked.ptype) st.value = picked.ptype.v === "com" ? "Commercial Service" : "Residential Service";
+        if(st && kind()) st.value = isHome() ? "Residential Service" : "Commercial Service";
       });
     });
   }
@@ -810,7 +867,8 @@
   }
 
   function renderResult(){
-    var items = recommendedServices();
+    if(kind() === "biz_int"){ renderCommercial(); return; }
+    var items = picked.services || [];
     var pct = 100;
     var html = '<div class="quiz-progress"><span style="width:' + pct + '%"></span></div>';
     if(items.length === 0){
