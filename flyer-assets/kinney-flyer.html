@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; font-family: Arial, Helvetica, sans-serif; }
+  .flyer { width:1080px; height:1350px; background:#fff; overflow:hidden; position:relative; }
+  .logo-zone { background:#fff; text-align:center; padding:18px 40px 6px; }
+  .logo-zone img { width:560px; height:auto; display:block; margin:0 auto; }
+  .biz-name { font-family:"Arial Black", Arial, sans-serif; font-style:italic; font-weight:900; font-size:76px; letter-spacing:1px; line-height:1;
+    background:linear-gradient(180deg,#2b7de9 20%,#0a2a6b 75%); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:2px; }
+  .biz-name .kcs { color:#0a2a6b; -webkit-text-fill-color:#0a2a6b; }
+  .tagline { font-family: Georgia, "Times New Roman", serif; font-style:italic; font-size:44px; color:#1663d9; margin:8px 0 4px; }
+  .swoosh { height:26px; background:linear-gradient(90deg,#0a2a6b,#2b7de9,#0a2a6b); clip-path:ellipse(60% 100% at 50% 0%); margin:0 60px; }
+  .hero { position:relative; height:250px; overflow:hidden; }
+  .hero img { width:100%; height:100%; object-fit:cover; display:block; }
+  .hero .overlay { position:absolute; left:0; right:0; bottom:0; padding:34px 40px 16px;
+    background:linear-gradient(180deg, rgba(10,42,107,0) 0%, rgba(10,42,107,.85) 100%); }
+  .hero .overlay p { color:#fff; font-family:"Arial Black", Arial, sans-serif; font-style:italic; font-size:40px; }
+  .services { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; padding:22px 40px 6px; }
+  .card { text-align:center; }
+  .icon { width:104px; height:104px; border-radius:50%; background:#0a2a6b; margin:0 auto 10px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(10,42,107,.25); }
+  .icon svg { width:56px; height:56px; }
+  .card h3 { font-size:23px; color:#0a2a6b; font-weight:900; line-height:1.15; margin-bottom:6px; }
+  .card p { font-size:17.5px; color:#33415c; line-height:1.35; }
+  .trust { margin:16px 40px 0; background:#eaf2ff; border-radius:14px; padding:16px 26px; }
+  .trust-row { display:flex; justify-content:space-between; align-items:center; }
+  .trust-item { display:flex; align-items:center; gap:9px; font-weight:900; font-size:19px; color:#0a2a6b; }
+  .check { width:34px; height:34px; border-radius:50%; background:#0a2a6b; color:#fff; font-size:20px;
+    display:flex; align-items:center; justify-content:center; font-weight:900; flex:none; }
+  .trust-script { text-align:center; font-family:Georgia, serif; font-style:italic; font-size:34px; color:#0a2a6b; margin-top:10px; }
+  .contact { margin-top:16px; background:linear-gradient(180deg,#123a8f,#0a2a6b); padding:20px 40px 22px; text-align:center; }
+  .contact .owned { color:#9fc0f5; font-size:20px; letter-spacing:6px; font-weight:700; }
+  .contact .name { font-family:Georgia, serif; font-style:italic; font-size:52px; color:#fff; margin:4px 0 8px; }
+  .contact .phone { font-family:"Arial Black", Arial, sans-serif; font-size:64px; color:#fff; letter-spacing:2px; }
+  .contact .web { font-size:30px; color:#9fc0f5; font-weight:700; margin-top:6px; }
+  .footer { background:#0a2a6b; color:#fff; text-align:center; padding:12px 20px 16px; font-size:24px; }
+  .footer .script { font-family:Georgia, serif; font-style:italic; color:#cfe1ff; }
+  .footer .small { font-size:18px; color:#9fc0f5; margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="flyer">
+  <div class="logo-zone">
+    <img src="media-generation-kinney-house-logo-0-a68f64b2-670e-42a2-91fe-271bb12c93b2.webp" alt="Kinney Cleaning Services house logo">
+    <div class="biz-name">KINNEY CLEANING<br><span class="kcs">SERVICES</span></div>
+    <div class="tagline">Veteran Owned. Mobile Proud.</div>
+  </div>
+  <div class="swoosh"></div>
+  <div class="hero">
+    <img src="media-generation-kinney-pressure-wash-hero-0-3acbadd3-6088-4edb-a91c-d9d122f2e442.webp" alt="Pressure washing house siding">
+    <div class="overlay"><p>We Bring the Clean Back.</p></div>
+  </div>
+  <div class="services">
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div>
+      <h3>HOUSE SOFT WASH</h3>
+      <p>Gentle wash for siding, trim and porches. Safe for your home.</p>
+    </div>
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20L14 4"/><path d="M13 5l3 1-8 12-3-1z" fill="#fff" opacity=".85"/><path d="M16 16l4 4M18 14l4 4" stroke-linecap="round"/></svg></div>
+      <h3>DRIVEWAY &amp; CONCRETE</h3>
+      <p>Driveways, sidewalks and patios restored like new.</p>
+    </div>
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M2 12l10-8 10 8"/><path d="M6 11v8h12v-8"/><path d="M9 19v-4h6v4"/></svg></div>
+      <h3>ROOF SOFT WASH</h3>
+      <p>Kills algae and black streaks with no shingle damage.</p>
+    </div>
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 8h18v3H3z"/><path d="M5 11v6h4v-6"/><path d="M12 14c0 2-1.5 3.5-1.5 5" stroke-linecap="round"/><circle cx="10.5" cy="20" r=".6" fill="#fff"/></svg></div>
+      <h3>GUTTER CLEANING</h3>
+      <p>Debris removal plus downspout flush. Water flows free.</p>
+    </div>
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M12 3v18M4 12h16"/></svg></div>
+      <h3>WINDOW CLEANING</h3>
+      <p>Inside and out, streak free shine. Screens wiped.</p>
+    </div>
+    <div class="card">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></div>
+      <h3>TILE &amp; GROUT</h3>
+      <p>Deep steam clean lifts years of grime from grout lines.</p>
+    </div>
+  </div>
+  <div class="trust">
+    <div class="trust-row">
+      <div class="trust-item"><span class="check">✓</span>VETERAN OWNED &amp; OPERATED</div>
+      <div class="trust-item"><span class="check">✓</span>5.0 STAR GOOGLE RATING</div>
+    </div>
+    <div class="trust-row" style="margin-top:10px;">
+      <div class="trust-item"><span class="check">✓</span>RELIABLE &amp; ON TIME</div>
+      <div class="trust-item"><span class="check">✓</span>RESIDENTIAL &amp; COMMERCIAL</div>
+    </div>
+    <div class="trust-script">No job too big or too small!</div>
+  </div>
+  <div class="contact">
+    <div class="owned">OWNED &amp; OPERATED BY</div>
+    <div class="name">Chad Kinney</div>
+    <div class="phone">(251) 767-0754</div>
+    <div class="web">kinneycleaningservices.com</div>
+  </div>
+  <div class="footer">
+    <div class="script">Veteran Owned. Local. Trusted.</div>
+    <div class="small">Mobile, AL &nbsp;|&nbsp; Serving Mobile County &amp; the Eastern Shore &nbsp;|&nbsp; Since 2019</div>
+  </div>
+</div>
+</body>
+</html>
