@@ -560,7 +560,7 @@
       skip:function(){ return kind() !== "home_int"; } },
     { id:"sqft", type:"slider", title:"About how many square feet?" },
     { id:"services", type:"services", multi:true, title:"Which services do you want?",
-      hint:"Tap all that apply. Prices shown are estimates.",
+      hint:"Tap all that apply.",
       skip:function(){ return kind() === "biz_int"; } },
     { id:"patioSqft", type:"slider", title:"About how many total square feet of patio?",
       min:200, max:10000, step:100, def:400,
@@ -696,12 +696,10 @@
       html += '<div class="quiz-answers">';
       serviceOptions().forEach(function(id){
         var d = serviceDef(id);
-        var priceHtml = (id === "patio" || id === "deck")
-          ? '<span class="quiz-svc-price">Priced by size</span>'
-          : '<span class="quiz-svc-price">$' + fmt(d.price) + '</span>';
-        html += '<button type="button" class="quiz-answer quiz-svc' + (svcPicked(id) ? " selected" : "") + '" data-svc="' + id + '">'
-          + '<span>' + esc(d.name) + (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '') + '</span>'
-          + priceHtml + '</button>';
+        var sub = (id === "patio" || id === "deck")
+          ? '<span class="qtag">Priced by size</span>' : (d.tag ? '<span class="qtag">' + esc(d.tag) + '</span>' : '');
+        html += '<button type="button" class="quiz-answer' + (svcPicked(id) ? " selected" : "") + '" data-svc="' + id + '">'
+          + esc(d.name) + sub + '</button>';
       });
       html += '</div>';
     } else {
