@@ -345,3 +345,7 @@ a { color: var(--blue); }
 /* ---------- area note ---------- */
 .area-note { margin-top: 18px; color: var(--muted); font-size: 16px; }
 .area-note a { font-weight: 700; }
+
+/* ---------- quiz lead gate ---------- */
+.quiz-form-err { color: #b91c1c; font-weight: 600; margin: 0 0 12px; }
+#quizLeadForm .field { margin-bottom: 14px; }

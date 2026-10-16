@@ -762,6 +762,53 @@
     });
   }
 
+  function quizUnlocked(){
+    try { return localStorage.getItem("kcs_lead_ok") === "1"; } catch(e){ return false; }
+  }
+
+  function renderQuizGate(){
+    var html = '<div class="quiz-progress"><span style="width:100%"></span></div>'
+      + '<h3 class="quiz-q">Your estimate is ready.</h3>'
+      + '<p class="quiz-note" style="font-size:1rem;margin-bottom:16px;">Enter your name and phone number to see your instant estimate.</p>'
+      + '<form id="quizLeadForm">'
+      + '<div class="field"><label for="qzName">Name</label><input id="qzName" name="name" required autocomplete="name"></div>'
+      + '<div class="field"><label for="qzPhone">Phone</label><input id="qzPhone" name="phone" type="tel" required autocomplete="tel"></div>'
+      + '<div class="field"><label for="qzEmail">Email (optional)</label><input id="qzEmail" name="email" type="email" autocomplete="email"></div>'
+      + '<p class="quiz-form-err" id="quizLeadError" style="display:none;"></p>'
+      + '<div class="quiz-actions"><button class="btn btn-primary" type="submit" id="quizLeadSubmit">Show My Estimate</button></div>'
+      + '<p class="quiz-note" style="margin-top:12px;">We only use this to send your estimate. No spam, ever.</p>'
+      + '</form>'
+      + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    card.innerHTML = html;
+    document.getElementById("quizRestart").addEventListener("click", function(){
+      step = 0; picked = {}; render();
+    });
+    document.getElementById("quizLeadForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      var btn = document.getElementById("quizLeadSubmit");
+      var err = document.getElementById("quizLeadError");
+      err.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "Loading…";
+      var body = new URLSearchParams(new FormData(e.target));
+      body.append("kind", "quiz estimate lead");
+      body.append("message", quizSummary());
+      fetch("https://formspree.io/f/xnpnylqz", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded","Accept":"application/json"}, body: body.toString()})
+        .then(function(res){
+          if(!res.ok){ throw new Error("submit failed"); }
+          try { localStorage.setItem("kcs_lead_ok", "1"); } catch(e2){}
+          renderResult();
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = "Show My Estimate";
+          err.textContent = "Something went wrong. Please check your connection and try again.";
+          err.style.display = "block";
+        });
+    });
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
   function renderResult(){
     var items = recommendedServices();
     var pct = 100;
@@ -774,6 +821,9 @@
         + '<a class="btn btn-ghost" href="tel:+12517670754">Call (251) 767-0754</a>'
         + '</div>'
         + '<button type="button" class="quiz-back" id="quizRestart">Retake the quiz</button>';
+    } else if(!quizUnlocked()){
+      renderQuizGate();
+      return;
     } else {
       var sub = 0, rows = "";
       items.forEach(function(svc){
