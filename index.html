@@ -553,6 +553,9 @@
     { id:"stories", title:"How many stories is the building?",
       answers:[ {t:"One story", v:"one"}, {t:"Two stories", v:"two"} ],
       skip:function(){ return !isExt(); } },
+    { id:"pilings", title:"Is the home on pilings or stilts?",
+      answers:[ {t:"Yes, elevated on pilings", v:"yes"}, {t:"No, on the ground", v:"no"} ],
+      skip:function(){ return kind() !== "home_ext"; } },
     { id:"rooms", type:"rooms", title:"How many rooms are we cleaning?",
       skip:function(){ return kind() !== "home_int"; } },
     { id:"sqft", type:"slider", title:"About how many square feet?" },
@@ -575,6 +578,7 @@
   function isHome(){ return kind() === "home_ext" || kind() === "home_int"; }
   function svcPicked(svc){ var s = picked.services; return !!(s && s.indexOf(svc) !== -1); }
   function story(){ return (picked.stories && picked.stories.v === "two") ? "two" : "one"; }
+  function pilingOn(){ return !!(picked.pilings && picked.pilings.v === "yes"); }
 
   function sqftCfg(){
     var k = kind();
@@ -634,9 +638,12 @@
 
   function serviceDef(svc){
     var two = story() === "two", home = isHome();
+    var piling = pilingOn();
     if(svc === "house"){
-      return { name: (home ? "House soft wash" : "Building soft wash") + (two ? " (two story)" : " (one story)"),
-               price: houseWashPrice(), tag: fmt(sqft()) + " sq ft" };
+      var hp = houseWashPrice();
+      if(piling) hp = Math.round(hp * 1.5);
+      return { name: (home ? "House soft wash" : "Building soft wash") + " (" + (two ? "two story" : "one story") + (piling ? ", on pilings" : "") + ")",
+               price: hp, tag: fmt(sqft()) + " sq ft" + (piling ? ", elevated on pilings" : "") };
     }
     if(svc === "roof") return { name: "Roof soft wash", price: 549, tag: null };
     if(svc === "driveway") return { name: home ? "Driveway cleaning" : "Parking area cleaning",
@@ -760,7 +767,7 @@
           b.classList.add("selected");
           picked[q.id] = ans;
           if(q.id === "kind"){
-            delete picked.services; delete picked.stories; delete picked.rooms;
+            delete picked.services; delete picked.stories; delete picked.pilings; delete picked.rooms;
             delete picked.sqft; delete picked.patioSqft; delete picked.deckSqft;
           }
           document.getElementById("quizNext").disabled = false;
@@ -787,6 +794,7 @@
     var lines = ["Website quiz result:"];
     lines.push("Kind: " + (KIND_LABEL[kind()] || ""));
     if(isExt()) lines.push("Stories: " + story());
+    if(pilingOn()) lines.push("Pilings: elevated on pilings");
     if(kind() === "home_int"){
       var r = roomsVal();
       lines.push("Rooms: " + r.bed + " bd, " + r.bath + " ba, " + r.liv + " living areas");
